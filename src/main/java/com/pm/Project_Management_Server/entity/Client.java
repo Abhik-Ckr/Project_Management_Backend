@@ -17,6 +17,7 @@ public class Client {
     private String name;
     private String email;
     private LocalDate onBoardedOn;
+    //range of the rating is from 0 to 10
     @Min(0)
     @Max(10)
     private Integer clientRating;
