@@ -1,9 +1,6 @@
 package com.pm.Project_Management_Server.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 public class User {
@@ -14,6 +11,10 @@ public class User {
     private String userName;
     private String password;
     private String email;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private ProjectLead projectLead;
+
 
     private UserType userType; // enum ADMIN, OTHER and MANAGER
 }

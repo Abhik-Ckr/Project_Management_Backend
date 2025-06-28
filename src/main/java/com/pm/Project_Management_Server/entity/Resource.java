@@ -1,8 +1,11 @@
 package com.pm.Project_Management_Server.entity;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import lombok.Data;
+import lombok.Getter;
 
+import java.time.LocalDate;
+@Data
 @Entity
 public class Resource {
 
@@ -10,20 +13,27 @@ public class Resource {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
 // uncomment the below code after creating the project entity
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
 
     private String resourceName;
+    @Enumerated(EnumType.STRING)
+    private ResourceLevel level;
+
 
     private LocalDate startDate;
+
     private LocalDate endDate;
 
-    private int allocationPercentage = 100;
+
 
     private int exp;
 
     private boolean isAllocated;
 
-}
+
+    }
+

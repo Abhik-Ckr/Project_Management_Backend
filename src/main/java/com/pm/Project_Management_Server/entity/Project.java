@@ -28,32 +28,32 @@ public class Project {
     private Client client;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Resource> listOfResources;
+    private List<Resource> Resources;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Highlight> listOfHighlights;
+    private List<Highlight> Highlights;
 
-    @OneToOne
-    @JoinColumn(name = "contract_id")
-    private Contract contract;
+
 
     @OneToOne
     @JoinColumn(name = "project_rate_card_id")
     private ProjectRateCard projectRateCard;
 
-    private Double budgets;
+    private Double budget;
+
 
     @ManyToOne
     @JoinColumn(name = "contact_person_id")
     private ContactPerson contactPerson;
 
-    @ManyToOne
-    @JoinColumn(name = "manager_id")
-    private User manager;
 
-    @ManyToOne
-    @JoinColumn(name = "project_lead_id")
-    private User projectLead;
+   @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+   private List<Issue> issues;
+
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
+    private ProjectLead projectLead;
+
+
 
     public enum Status {
         OPEN,
