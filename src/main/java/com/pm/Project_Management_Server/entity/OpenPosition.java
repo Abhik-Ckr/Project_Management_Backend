@@ -8,13 +8,10 @@ public class OpenPosition {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-   private ResourceLevel level;
+    private ResourceLevel level;
 
     private int numberRequired;
 
-//    @ManyToMany
-//    private Project project; will take it from Project Class -> SANTOSH
-
-
-
+    @ManyToMany
+    private Project project;
 }

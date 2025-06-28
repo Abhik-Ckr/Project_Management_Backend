@@ -12,6 +12,9 @@ public class Resource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+
+// uncomment the below code after creating the project entity
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
