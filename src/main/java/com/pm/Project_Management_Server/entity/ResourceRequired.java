@@ -1,8 +1,10 @@
 package com.pm.Project_Management_Server.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 public class ResourceRequired {
 
     @Id
@@ -18,5 +20,4 @@ public class ResourceRequired {
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
-
 }
