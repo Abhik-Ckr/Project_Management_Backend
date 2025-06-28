@@ -11,9 +11,9 @@ public class Highlight {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne
-//    @JoinColumn(name = "project_id")
-//    private Project project;
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    private Project project;
 
     @Column(length = 1000)
     private String description;

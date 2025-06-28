@@ -15,8 +15,8 @@ public class ResourceRequired {
     private String expRange;
     private int quantity;
 
-//    @ManyToOne
-//    @JoinColumn(name = "project_id")
-//    private Project project;
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    private Project project;
 
 }

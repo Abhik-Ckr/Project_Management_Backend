@@ -7,14 +7,11 @@ public class OpenPosition {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @Enumerated(EnumType.STRING)
-//    private ResourceLevel level; will take it from resourceRequired -> DATTA
+    @Enumerated(EnumType.STRING)
+    private ResourceLevel level;
 
     private int numberRequired;
 
-//    @ManyToMany
-//    private Project project; will take it from Project Class -> SANTOSH
-
-
-
+    @ManyToMany
+    private Project project;
 }

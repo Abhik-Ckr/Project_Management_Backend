@@ -11,9 +11,9 @@ public class Resource {
     private Long id;
 
 // uncomment the below code after creating the project entity
-//    @ManyToOne
-//    @JoinColumn(name = "project_id")
-//    private Project project;
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    private Project project;
 
     private String resourceName;
 

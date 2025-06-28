@@ -11,6 +11,6 @@ public class Contract {
     private int duration; //in months
     private double amountQuoted;
 
-//    @OneToOne(mappedBy = "contract")
-//    private Project project; will take it from Project Class -> SANTOSH
+    @OneToOne(mappedBy = "contract")
+    private Project project;
 }
