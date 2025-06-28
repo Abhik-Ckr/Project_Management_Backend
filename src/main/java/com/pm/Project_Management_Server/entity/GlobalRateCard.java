@@ -1,7 +1,9 @@
 package com.pm.Project_Management_Server.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+@Data
 @Entity
 public class GlobalRateCard {
 
@@ -12,8 +14,10 @@ public class GlobalRateCard {
 
     @Enumerated(EnumType.STRING)
     private ResourceLevel level;
-    //same or different level here?
 
-    private double hourlyRate;
+
+    private double Rate;
+
+
 
 }

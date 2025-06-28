@@ -1,9 +1,10 @@
 package com.pm.Project_Management_Server.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
-
+@Data
 @Entity
 public class ProjectRateCard {
 
@@ -17,8 +18,13 @@ public class ProjectRateCard {
 
     @Enumerated(EnumType.STRING)
     private ResourceLevel level;
-    private double hourlyRate;
+    private double Rate;
     private boolean isActive;
     private LocalDateTime lastUpdated;
+
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
 
 }
