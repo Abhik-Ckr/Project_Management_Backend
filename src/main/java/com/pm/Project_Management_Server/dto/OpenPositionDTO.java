@@ -1,5 +1,9 @@
 package com.pm.Project_Management_Server.dto;
 
+
+
+import com.pm.Project_Management_Server.entity.ResourceLevel;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +14,6 @@ import lombok.NoArgsConstructor;
 public class OpenPositionDTO {
     private Long id;
     private Long projectId;
-    private String level;
+    private ResourceLevel level;
     private Integer numberRequired;
 }
