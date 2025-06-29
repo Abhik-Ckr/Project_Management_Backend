@@ -30,9 +30,9 @@ public class Resource {
 
 
 
-    private int exp;
+    private Integer exp;
 
-    private boolean isAllocated;
+    private boolean allocated;
 
 
     }
