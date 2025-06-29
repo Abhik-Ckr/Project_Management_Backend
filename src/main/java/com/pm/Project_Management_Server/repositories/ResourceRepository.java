@@ -20,5 +20,6 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
 
     // Optional: Unallocated resources
     List<Resource> findByIsAllocatedFalse();
+    List<Resource> findByIsAllocatedTrue();
 }
 
