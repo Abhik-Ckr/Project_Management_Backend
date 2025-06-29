@@ -3,10 +3,11 @@ package com.pm.Project_Management_Server.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.List;
-
+@Data
 @Entity
 public class Client {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,5 +22,6 @@ public class Client {
     private Integer clientRating;
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Project> projects;
+
 
 }

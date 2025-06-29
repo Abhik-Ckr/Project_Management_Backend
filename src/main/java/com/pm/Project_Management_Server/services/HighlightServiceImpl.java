@@ -1,7 +1,7 @@
-package com.pm.Project_Management_Server.Services;
+package com.pm.Project_Management_Server.services;
 
-import com.pm.Project_Management_Server.Repositories.HighlightRepository;
-import com.pm.Project_Management_Server.Repositories.ProjectRepository;
+import com.pm.Project_Management_Server.repositories.HighlightRepository;
+import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.dto.CreateHighlightDTO;
 import com.pm.Project_Management_Server.dto.HighlightDTO;
 import com.pm.Project_Management_Server.entity.Highlight;
