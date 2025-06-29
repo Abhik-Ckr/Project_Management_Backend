@@ -1,6 +1,6 @@
 package com.pm.Project_Management_Server.controllers;
 
-import com.pm.Project_Management_Server.Services.ContractService;
+import com.pm.Project_Management_Server.services.ContractService;
 import com.pm.Project_Management_Server.dto.ContractDTO;
 import com.pm.Project_Management_Server.dto.ContractResponseDTO;
 import lombok.RequiredArgsConstructor;

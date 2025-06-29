@@ -1,7 +1,7 @@
-package com.pm.Project_Management_Server.Services;
+package com.pm.Project_Management_Server.services;
 
-import com.pm.Project_Management_Server.Repositories.IssueRepository;
-import com.pm.Project_Management_Server.Repositories.ProjectRepository;
+import com.pm.Project_Management_Server.repositories.IssueRepository;
+import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.dto.CreateIssueDTO;
 import com.pm.Project_Management_Server.dto.IssueDTO;
 import com.pm.Project_Management_Server.entity.Issue;
@@ -9,7 +9,6 @@ import com.pm.Project_Management_Server.entity.Project;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -1,6 +1,6 @@
 package com.pm.Project_Management_Server.controllers;
 
-import com.pm.Project_Management_Server.Services.RateCardService;
+import com.pm.Project_Management_Server.services.RateCardService;
 import com.pm.Project_Management_Server.dto.GlobalRateCardDTO;
 import com.pm.Project_Management_Server.dto.ProjectRateCardDTO;
 import lombok.RequiredArgsConstructor;

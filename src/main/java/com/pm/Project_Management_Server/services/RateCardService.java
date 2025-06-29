@@ -1,4 +1,4 @@
-package com.pm.Project_Management_Server.Services;
+package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.GlobalRateCardDTO;
 import com.pm.Project_Management_Server.dto.ProjectRateCardDTO;

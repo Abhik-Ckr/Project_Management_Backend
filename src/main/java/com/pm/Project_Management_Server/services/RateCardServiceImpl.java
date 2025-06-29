@@ -1,8 +1,8 @@
-package com.pm.Project_Management_Server.Services;
+package com.pm.Project_Management_Server.services;
 
-import com.pm.Project_Management_Server.Repositories.GlobalRateCardRepository;
-import com.pm.Project_Management_Server.Repositories.ProjectRateCardRepository;
-import com.pm.Project_Management_Server.Repositories.ProjectRepository;
+import com.pm.Project_Management_Server.repositories.GlobalRateCardRepository;
+import com.pm.Project_Management_Server.repositories.ProjectRateCardRepository;
+import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.dto.GlobalRateCardDTO;
 import com.pm.Project_Management_Server.dto.ProjectRateCardDTO;
 import com.pm.Project_Management_Server.entity.GlobalRateCard;
