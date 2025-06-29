@@ -28,7 +28,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRateCardRepository rateCardRepo;
     private final ProjectLeadRepository leadRepo;
     private final ClientRepository clientRepo;
-  //  private final ContactPersonRepository contactPersonRepo;
+    private final ContactPersonRepository contactPersonRepo;
 
     // ---------- CRUD Operations using DTO ----------
 
@@ -64,10 +64,10 @@ public class ProjectServiceImpl implements ProjectService {
                         .orElseThrow(() -> new RuntimeException("Client not found")));
             }
 
-//            if (dto.getContactPersonId() != null) {
-//                project.setContactPerson(contactPersonRepo.findById(dto.getContactPersonId())
-//                        .orElseThrow(() -> new RuntimeException("Contact person not found")));
-//            }
+            if (dto.getContactPersonId() != null) {
+                project.setContactPerson(contactPersonRepo.findById(dto.getContactPersonId())
+                        .orElseThrow(() -> new RuntimeException("Contact person not found")));
+            }
 
             if (dto.getProjectLeadId() != null) {
                 project.setProjectLead(leadRepo.findById(dto.getProjectLeadId())
@@ -191,10 +191,10 @@ public class ProjectServiceImpl implements ProjectService {
                     .orElseThrow(() -> new RuntimeException("Client not found")));
         }
 
-//        if (dto.getContactPersonId() != null) {
-//            project.setContactPerson(contactPersonRepo.findById(dto.getContactPersonId())
-//                    .orElseThrow(() -> new RuntimeException("Contact person not found")));
-//        }
+        if (dto.getContactPersonId() != null) {
+            project.setContactPerson(contactPersonRepo.findById(dto.getContactPersonId())
+                    .orElseThrow(() -> new RuntimeException("Contact person not found")));
+        }
 
         if (dto.getProjectRateCardId() != null) {
             project.setProjectRateCard(rateCardRepo.findById(dto.getProjectRateCardId())
