@@ -22,6 +22,4 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
     // Get allocated resources
     List<Resource> findByAllocatedTrue();
 
-    // Generic - get by allocation status (true/false)
-    List<Resource> findByAllocated(Boolean allocated);
 }
