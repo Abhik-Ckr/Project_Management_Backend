@@ -28,8 +28,6 @@ public class Resource {
 
     private LocalDate endDate;
 
-
-
     private int exp;
 
     private boolean isAllocated;
