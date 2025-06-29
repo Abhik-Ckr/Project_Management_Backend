@@ -1,4 +1,4 @@
-package com.pm.Project_Management_Server.repositories;
+package com.pm.Project_Management_Server.Repositories;
 
 import com.pm.Project_Management_Server.entity.OpenPosition;
 
