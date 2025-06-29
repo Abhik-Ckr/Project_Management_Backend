@@ -17,5 +17,5 @@ public class ResourceDTO {
     private LocalDate endDate;
     private Integer allocationPercentage;  // default 100
     private Integer exp;                   // years of experience
-    private Boolean isAllocated;
+    private Boolean allocated;
 }
