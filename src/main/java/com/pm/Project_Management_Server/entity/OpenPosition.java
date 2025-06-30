@@ -6,11 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Data
-@AllArgsConstructor
+
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
+@Data
+@Entity
 public class OpenPosition {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +22,10 @@ public class OpenPosition {
 
     private int numberRequired;
 
-    @OneToMany
+//    @ManyToMany
+    @ManyToOne
+    @JoinColumn(name = "project_id")
     private Project project;
+
+
 }

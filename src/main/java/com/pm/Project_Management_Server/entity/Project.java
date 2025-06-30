@@ -53,6 +53,10 @@ public class Project {
     @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
     private ProjectLead projectLead;
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OpenPosition> openPositions;
+
+
 
 
     @OneToOne
