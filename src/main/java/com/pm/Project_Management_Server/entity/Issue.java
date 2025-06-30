@@ -29,7 +29,6 @@ public class Issue {
     @Enumerated(EnumType.STRING)
     private IssueStatus status;
 
-    // Relation to Project
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
