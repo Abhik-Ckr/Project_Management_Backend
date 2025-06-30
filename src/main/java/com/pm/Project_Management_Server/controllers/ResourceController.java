@@ -1,5 +1,7 @@
-package com.pm.Project_Management_Server.controller;
+package com.pm.Project_Management_Server.controllers;
 
+
+import com.pm.Project_Management_Server.Services.ResourceServiceImpl;
 import com.pm.Project_Management_Server.dto.ResourceDTO;
 import com.pm.Project_Management_Server.services.ResourceService;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ResourceController {
 
-    private final ResourceService resourceService;
+    private final ResourceServiceImpl resourceService;
 
     @PostMapping
     public ResponseEntity<ResourceDTO> createResource(@RequestBody ResourceDTO dto) {
