@@ -1,7 +1,7 @@
 package com.pm.Project_Management_Server.controllers;
 
 
-import com.pm.Project_Management_Server.Services.HighlightService;
+import com.pm.Project_Management_Server.services.HighlightService;
 import com.pm.Project_Management_Server.dto.CreateHighlightDTO;
 import com.pm.Project_Management_Server.dto.HighlightDTO;
 import lombok.RequiredArgsConstructor;

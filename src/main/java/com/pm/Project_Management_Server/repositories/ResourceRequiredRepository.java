@@ -1,4 +1,4 @@
-package com.pm.Project_Management_Server.Repositories;
+package com.pm.Project_Management_Server.repositories;
 
 import com.pm.Project_Management_Server.entity.ResourceRequired;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package com.pm.Project_Management_Server.Repositories;
+package com.pm.Project_Management_Server.repositories;
 
 
 
@@ -20,5 +20,6 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
 
     // Optional: Unallocated resources
     List<Resource> findByIsAllocatedFalse();
+    List<Resource> findByIsAllocatedTrue();
 }
 

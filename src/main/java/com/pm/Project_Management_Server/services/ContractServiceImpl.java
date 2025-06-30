@@ -1,8 +1,8 @@
-package com.pm.Project_Management_Server.Services;
+package com.pm.Project_Management_Server.services;
 
-import com.pm.Project_Management_Server.Repositories.ContractRepository;
-import com.pm.Project_Management_Server.Repositories.ProjectRepository;
-import com.pm.Project_Management_Server.Repositories.ResourceRequiredRepository;
+import com.pm.Project_Management_Server.repositories.ContractRepository;
+import com.pm.Project_Management_Server.repositories.ProjectRepository;
+import com.pm.Project_Management_Server.repositories.ResourceRequiredRepository;
 import com.pm.Project_Management_Server.dto.ContractDTO;
 import com.pm.Project_Management_Server.dto.ContractResponseDTO;
 import com.pm.Project_Management_Server.entity.Contract;

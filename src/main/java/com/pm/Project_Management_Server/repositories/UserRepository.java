@@ -1,4 +1,4 @@
-package com.pm.Project_Management_Server.Repositories;
+package com.pm.Project_Management_Server.repositories;
 
 import com.pm.Project_Management_Server.entity.User;
 import com.pm.Project_Management_Server.entity.UserType;
@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.List;
-import com.pm.Project_Management_Server.entity.UserType;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
