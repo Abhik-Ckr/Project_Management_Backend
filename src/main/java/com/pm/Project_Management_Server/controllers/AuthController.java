@@ -25,8 +25,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody LoginDTO dto,
                                         HttpSession session) {
-        authService.verifyLogin(dto.getUserName(), dto.getPassword());
-        session.setAttribute("USER", dto.getUserName());
+        authService.verifyLogin(dto.getEmail(), dto.getPassword());
+        session.setAttribute("USER", dto.getEmail());
         return ResponseEntity.ok("login ok");
     }
 

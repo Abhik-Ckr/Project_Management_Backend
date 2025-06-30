@@ -18,8 +18,8 @@ public class AuthService {
 
     @Transactional
     public UserDTO register(UserCreateDTO dto) {
-        if (userRepo.existsByUserName(dto.getUserName()))
-            throw new IllegalStateException("username already taken");
+//        if (userRepo.existsByUserName(dto.getUserName()))
+//            throw new IllegalStateException("username already taken");
         if (userRepo.existsByEmail(dto.getEmail()))
             throw new IllegalStateException("email already taken");
 
@@ -34,10 +34,10 @@ public class AuthService {
 
 
     //temporarily storing exceptions in the file!!!
-    public void verifyLogin(String username, String rawPwd) {
-        User u = userRepo.findByUserName(username)
+    public void verifyLogin(String email, String rawPwd) {
+        User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("bad credentials"));
-        if (!encoder.matches(rawPwd, u.getPassword()))
+        if (!encoder.matches(rawPwd, user.getPassword()))
             throw new IllegalArgumentException("bad credentials");
     }
 }
