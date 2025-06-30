@@ -1,7 +1,7 @@
 package com.pm.Project_Management_Server.controllers;
 
 import com.pm.Project_Management_Server.dto.ResourceRequiredDTO;
-import com.pm.Project_Management_Server.Services.ResourceRequiredService;
+import com.pm.Project_Management_Server.services.ResourceRequiredService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
