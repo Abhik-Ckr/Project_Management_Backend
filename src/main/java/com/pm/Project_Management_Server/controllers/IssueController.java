@@ -1,6 +1,6 @@
 package com.pm.Project_Management_Server.controllers;
 
-import com.pm.Project_Management_Server.Services.IssueService;
+import com.pm.Project_Management_Server.services.IssueService;
 import com.pm.Project_Management_Server.dto.CreateIssueDTO;
 import com.pm.Project_Management_Server.dto.IssueDTO;
 import lombok.RequiredArgsConstructor;

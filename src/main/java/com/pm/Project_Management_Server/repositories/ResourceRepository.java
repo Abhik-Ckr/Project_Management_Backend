@@ -1,6 +1,4 @@
-package com.pm.Project_Management_Server.Repositories;
-
-
+package com.pm.Project_Management_Server.repositories;
 
 import com.pm.Project_Management_Server.entity.Resource;
 import com.pm.Project_Management_Server.entity.ResourceLevel;
@@ -15,10 +13,14 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
     // Get all resources assigned to a specific project
     List<Resource> findByProjectId(Long projectId);
 
-    // Optional: Get by level
+    // Get resources by level
     List<Resource> findByLevel(ResourceLevel level);
 
-    // Optional: Unallocated resources
-    List<Resource> findByIsAllocatedFalse();
+    // Get unallocated resources
+    List<Resource> findByAllocatedFalse();
+
+    // Get allocated resources
+    List<Resource> findByAllocatedTrue();
+
 }
 
