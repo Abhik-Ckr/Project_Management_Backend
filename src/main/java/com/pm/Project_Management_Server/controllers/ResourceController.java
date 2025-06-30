@@ -1,4 +1,4 @@
-package com.pm.Project_Management_Server.controller;
+package com.pm.Project_Management_Server.controllers;
 
 
 import com.pm.Project_Management_Server.Services.ResourceServiceImpl;
