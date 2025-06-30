@@ -12,8 +12,6 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
 
     Optional<Client> findByEmail(String email);
 
-    List<Client> findByLoyalty(boolean loyalty);
-
     List<Client> findByClientRatingGreaterThanEqual(int rating);
 
     List<Client> findByNameContainingIgnoreCase(String keyword);

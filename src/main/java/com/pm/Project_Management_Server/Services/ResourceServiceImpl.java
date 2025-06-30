@@ -1,4 +1,4 @@
-package com.pm.Project_Management_Server.Services;
+package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.ResourceDTO;
 import com.pm.Project_Management_Server.entity.Project;
@@ -6,6 +6,7 @@ import com.pm.Project_Management_Server.entity.Resource;
 import com.pm.Project_Management_Server.entity.ResourceLevel;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.repositories.ResourceRepository;
+import com.pm.Project_Management_Server.services.ResourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
