@@ -19,7 +19,7 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
     List<Resource> findByLevel(ResourceLevel level);
 
     // Optional: Unallocated resources
-    List<Resource> findByIsAllocatedFalse();
-    List<Resource> findByIsAllocatedTrue();
+    List<Resource> findByAllocatedFalse();
+    List<Resource> findByAllocatedTrue();
 }
 
