@@ -114,6 +114,10 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return overBudget;
     }
+    @Override
+    public long countProjectsOverBudget() {
+        return getProjectsOverBudget().size();
+    }
 
     @Override
     public double calculateBudgetSpent(Project project) {
