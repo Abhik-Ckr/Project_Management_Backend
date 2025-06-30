@@ -4,7 +4,6 @@ import com.pm.Project_Management_Server.dto.ProjectDTO;
 import com.pm.Project_Management_Server.entity.*;
 import com.pm.Project_Management_Server.repositories.*;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -155,6 +154,12 @@ public class ProjectServiceImpl implements ProjectService {
         return projectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
     }
+    @Override
+    public Double calculateBudgetSpentById(Long projectId) {
+        Project project = getProjectEntity(projectId);
+        return calculateBudgetSpent(project);
+    }
+
 
     private ProjectDTO mapToDTO(Project project) {
         ProjectDTO dto = new ProjectDTO();
