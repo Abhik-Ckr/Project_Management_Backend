@@ -1,7 +1,14 @@
 package com.pm.Project_Management_Server.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class OpenPosition {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,6 +19,6 @@ public class OpenPosition {
 
     private int numberRequired;
 
-    @ManyToMany
+    @OneToMany
     private Project project;
 }
