@@ -33,6 +33,8 @@ public class Resource {
     private LocalDate endDate;
 
 
+
+
 // migrated for lombok issues
 //    private int exp;
     private Integer exp;

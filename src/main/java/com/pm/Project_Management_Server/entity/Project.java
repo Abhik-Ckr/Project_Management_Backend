@@ -55,6 +55,11 @@ public class Project {
 
 
 
+    @OneToOne
+    @JoinColumn(name = "contract_id")
+    private Contract contract;
+
+
     public enum Status {
         OPEN,
         IN_PROGRESS,
