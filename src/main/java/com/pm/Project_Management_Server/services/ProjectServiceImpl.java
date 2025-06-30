@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class ProjectServiceImpl implements ProjectService {
 
-    private final ProjectRepository projectRepository;
+    private  final ProjectRepository projectRepository;
     private final ProjectRateCardRepository projectRateCardRepository;
     private final GlobalRateCardRepository globalRateCardRepository;
     private final HighlightRepository highlightRepo;
@@ -154,6 +154,12 @@ public class ProjectServiceImpl implements ProjectService {
         return projectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
     }
+    @Override
+    public Double calculateBudgetSpentById(Long projectId) {
+        Project project = getProjectEntity(projectId);
+        return calculateBudgetSpent(project);
+    }
+
 
     private ProjectDTO mapToDTO(Project project) {
         ProjectDTO dto = new ProjectDTO();

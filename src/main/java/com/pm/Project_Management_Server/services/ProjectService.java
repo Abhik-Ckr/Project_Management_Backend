@@ -26,5 +26,7 @@ public interface ProjectService {
 
     double calculateBudgetSpent(Project project);
 
+    Double calculateBudgetSpentById(Long id);
+
     // Optional: Keep advanced/relationship methods here as needed
 }

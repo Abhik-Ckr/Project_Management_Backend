@@ -1,6 +1,8 @@
 package com.pm.Project_Management_Server.dto;
 
+import jdk.jshell.Snippet;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +12,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ProjectDTO {
     private Long id;
     private String projectName;
@@ -25,4 +28,7 @@ public class ProjectDTO {
     private Long contactPersonId;
     private Long managerId;
     private Long projectLeadId;
+
+
+
 }
