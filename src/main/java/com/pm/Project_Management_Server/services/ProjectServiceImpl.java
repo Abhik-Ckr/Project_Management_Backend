@@ -4,6 +4,7 @@ import com.pm.Project_Management_Server.dto.ProjectDTO;
 import com.pm.Project_Management_Server.entity.*;
 import com.pm.Project_Management_Server.repositories.*;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class ProjectServiceImpl implements ProjectService {
 
-    private final ProjectRepository projectRepository;
+    private  final ProjectRepository projectRepository;
     private final ProjectRateCardRepository projectRateCardRepository;
     private final GlobalRateCardRepository globalRateCardRepository;
     private final HighlightRepository highlightRepo;
