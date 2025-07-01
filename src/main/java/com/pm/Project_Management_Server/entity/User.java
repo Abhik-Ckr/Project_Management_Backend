@@ -22,6 +22,6 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private ProjectLead projectLead;
 
-
+    @Enumerated(EnumType.STRING)
     private UserType userType; // enum ADMIN, OTHER and MANAGER
 }

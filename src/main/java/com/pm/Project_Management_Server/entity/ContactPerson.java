@@ -1,9 +1,6 @@
 package com.pm.Project_Management_Server.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +15,10 @@ public class ContactPerson {
 
     private String name;
     private String email;
+
+    @OneToOne
+    @JoinColumn(name = "project_id")
+    private Project project;
 
 
 
