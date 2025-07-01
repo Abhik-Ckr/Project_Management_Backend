@@ -4,6 +4,7 @@ import com.pm.Project_Management_Server.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -27,16 +28,15 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-//    @Bean
-//    public AuthenticatoinManager authenticatoinManager(
-//            AuthenticationConfiguration config) throws Exception{
-//        return config.getAuthenticationManager();
-//    }
-//    )
+   @Bean
+   public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config) throws Exception{
+        return config.getAuthenticationManager();
+    }
 }

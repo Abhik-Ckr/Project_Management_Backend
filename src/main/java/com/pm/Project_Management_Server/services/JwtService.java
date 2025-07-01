@@ -10,7 +10,7 @@ import java.util.Date;
 @Service
 public class JwtService {
     private static final long EXPIRATION_TIME = 86400000; // 1 day in ms
-    private static final String SECRET_KEY = "secret-here"; // should be 32-byte key
+    private static final String SECRET_KEY = "4c838ffa9a414923bcb00e7a8cf44a0d4c838ffa9a414923bcb00e7a8cf44a0d"; // should be 32-byte key
 
     private Key getSignKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
