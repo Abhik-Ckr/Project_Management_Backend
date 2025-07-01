@@ -22,6 +22,11 @@ public class ContactPersonController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PostMapping
+    public ResponseEntity<ContactPersonDTO> create(@RequestBody ContactPersonDTO dto) {
+        return ResponseEntity.ok(contactPersonService.create(dto));
+    }
+
     @GetMapping
     public List<ContactPersonDTO> getAll() {
         return contactPersonService.getAll();
