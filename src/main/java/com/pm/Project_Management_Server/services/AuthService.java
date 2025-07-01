@@ -15,6 +15,7 @@ public class AuthService {
 
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
+    private final JwtService jwtService;
 
     @Transactional
     public UserDTO register(UserCreateDTO dto) {
@@ -34,10 +35,12 @@ public class AuthService {
 
 
     //temporarily storing exceptions in the file!!!
-    public void verifyLogin(String email, String rawPwd) {
+    public String login(String email, String rawPwd) {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("bad credentials"));
         if (!encoder.matches(rawPwd, user.getPassword()))
             throw new IllegalArgumentException("bad credentials");
+
+        return jwtService.generateToken(user.getEmail());
     }
 }
