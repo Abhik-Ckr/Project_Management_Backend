@@ -1,36 +1,41 @@
 package com.pm.Project_Management_Server.controllers;
 
-import com.pm.Project_Management_Server.dto.UserCreateDTO;
 import com.pm.Project_Management_Server.dto.UserDTO;
 import com.pm.Project_Management_Server.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
+
     private final UserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<UserDTO> register(@Valid @RequestBody UserCreateDTO userCreateDTO) {
-        UserDTO userDTO = userService.registerUser(userCreateDTO);
-        return ResponseEntity.ok(userDTO);
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("")
-    public ResponseEntity<UserDTO> login(@RequestBody Map<String, String> loginRequest) {
-        String userName = loginRequest.get("userName");
-        String password = loginRequest.get("password");
-        try {
-            UserDTO userDTO = userService.login(userName, password);
-            return ResponseEntity.ok(userDTO);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(401).build();
-        }
+    @GetMapping
+    public List<UserDTO> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
+    @GetMapping("/type/{userType}")
+    public List<UserDTO> getUsersByType(@PathVariable String userType) {
+        return userService.getUsersByType(userType);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        return userService.deleteUser(id)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.notFound().build();
     }
 }

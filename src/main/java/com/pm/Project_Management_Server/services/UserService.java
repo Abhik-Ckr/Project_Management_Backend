@@ -1,9 +1,13 @@
 package com.pm.Project_Management_Server.services;
 
-import com.pm.Project_Management_Server.dto.UserCreateDTO;
 import com.pm.Project_Management_Server.dto.UserDTO;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface UserService {
-    UserDTO registerUser(UserCreateDTO userCreateDTO);
-    UserDTO login(String userName, String password);
-} 
+    Optional<UserDTO> getUserById(Long id);
+    List<UserDTO> getAllUsers();
+    List<UserDTO> getUsersByType(String userType);
+    boolean deleteUser(Long id);
+}

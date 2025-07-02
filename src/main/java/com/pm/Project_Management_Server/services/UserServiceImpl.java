@@ -1,48 +1,59 @@
 package com.pm.Project_Management_Server.services;
 
-import com.pm.Project_Management_Server.dto.UserCreateDTO;
 import com.pm.Project_Management_Server.dto.UserDTO;
 import com.pm.Project_Management_Server.entity.User;
 import com.pm.Project_Management_Server.entity.UserType;
 import com.pm.Project_Management_Server.repositories.UserRepository;
+import com.pm.Project_Management_Server.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+
+    private final UserRepository userRepo;
 
     @Override
-    public UserDTO registerUser(UserCreateDTO userCreateDTO) {
-        if (userRepository.existsByUserName(userCreateDTO.getUserName())) {
-            throw new RuntimeException("Username already exists");
-        }
-        if (userRepository.existsByEmail(userCreateDTO.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
-        User user = new User();
-        user.setUserName(userCreateDTO.getUserName());
-        user.setEmail(userCreateDTO.getEmail());
-        user.setPassword(passwordEncoder.encode(userCreateDTO.getPassword()));
-        user.setUserType(UserType.valueOf(userCreateDTO.getUserType()));
-        User saved = userRepository.save(user);
-        return toDTO(saved);
+    public Optional<UserDTO> getUserById(Long id) {
+        return userRepo.findById(id)
+                .map(this::mapToDTO);
     }
 
     @Override
-    public UserDTO login(String userName, String password) {
-        User user = userRepository.findByUserName(userName)
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid username or password");
-        }
-        return toDTO(user);
+    public List<UserDTO> getAllUsers() {
+        return userRepo.findAll()
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
-    private UserDTO toDTO(User user) {
-        return new UserDTO(user.getId(), user.getUserName(), user.getEmail(), user.getUserType().name());
+    @Override
+    public List<UserDTO> getUsersByType(String userType) {
+        UserType type = UserType.valueOf(userType.toUpperCase());
+        return userRepo.findByUserType(type)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
-} 
+
+    @Override
+    public boolean deleteUser(Long id) {
+        if (!userRepo.existsById(id)) return false;
+        userRepo.deleteById(id);
+        return true;
+    }
+
+    private UserDTO mapToDTO(User user) {
+        return new UserDTO(
+                user.getId(),
+                user.getUserName(),
+                user.getEmail(),
+                user.getUserType().name()
+        );
+    }
+}
