@@ -1,6 +1,7 @@
 package com.pm.Project_Management_Server.dto;
 
 
+import com.pm.Project_Management_Server.entity.ResourceLevel;
 import lombok.AllArgsConstructor;
 
 import jakarta.persistence.JoinColumn;
@@ -17,11 +18,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ProjectRateCardDTO {
     private Long id;
-    @OneToOne
-    @JoinColumn(name = "project_id")
     private Long projectId;
-    private String level;
-    private BigDecimal hourlyRate;
-    private Boolean isActive;
+    private ResourceLevel level;
+    private Double rate;
+    private Boolean active;
     private LocalDateTime lastUpdated;
+
+
 }

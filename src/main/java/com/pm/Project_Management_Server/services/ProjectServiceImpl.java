@@ -142,7 +142,7 @@ public class ProjectServiceImpl implements ProjectService {
     private double getRateForResource(Resource resource, Project project) {
         return projectRateCardRepository
                 .findByProjectIdAndLevel(project.getId(), resource.getLevel())
-                .filter(ProjectRateCard::getIsActive)
+                .filter(ProjectRateCard::getActive)
                 .map(ProjectRateCard::getRate)
                 .orElseGet(() -> globalRateCardRepository
                         .findByLevel(resource.getLevel())

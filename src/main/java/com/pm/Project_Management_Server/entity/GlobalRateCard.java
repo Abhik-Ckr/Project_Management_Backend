@@ -18,10 +18,6 @@ public class GlobalRateCard {
 
     @Enumerated(EnumType.STRING)
     private ResourceLevel level;
-
-
     private double Rate;
-
-
 
 }

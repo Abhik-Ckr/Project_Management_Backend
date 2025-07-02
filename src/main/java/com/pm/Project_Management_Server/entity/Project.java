@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,13 +28,12 @@ public class Project {
     @JoinColumn(name = "client_id")
     private Client client;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Resource> Resources;
-
+    private List<Resource> resources;
+    @JsonManagedReference
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Highlight> Highlights;
-
-
+    private List<Highlight> highlights;
 
     @OneToOne
     @JoinColumn(name = "project_rate_card_id")
@@ -41,28 +41,29 @@ public class Project {
 
     private Double budget;
 
-
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "contact_person_id")
     private ContactPerson contactPerson;
 
-
+    @JsonManagedReference
    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
    private List<Issue> issues;
 
     @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
     private ProjectLead projectLead;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OpenPosition> openPositions;
 
+    public void addResource(Resource resource) {
+        resources.add(resource);
+        resource.setProject(this); // maintain bidirectional integrity
+    }
 
-
-
-    @OneToOne
-    @JoinColumn(name = "contract_id")
-    private Contract contract;
-
+//    @OneToOne
+//    @JoinColumn(name = "contract_id")
+//    private Contract contract;
 
     public enum Status {
         OPEN,

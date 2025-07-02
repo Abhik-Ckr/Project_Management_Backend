@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +23,8 @@ public class OpenPosition {
     private int numberRequired;
 
     @ManyToOne
+
     @JoinColumn(name = "project_id")
+    @JsonBackReference
     private Project project;
 }

@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,29 +17,18 @@ public class Resource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-
 // uncomment the below code after creating the project entity
     @ManyToOne
     @JoinColumn(name = "project_id")
+    @JsonBackReference
     private Project project;
 
     private String resourceName;
     @Enumerated(EnumType.STRING)
     private ResourceLevel level;
-
-
     private LocalDate startDate;
-
     private LocalDate endDate;
-
-
-
-
-// migrated for lombok issues
-//    private int exp;
     private Integer exp;
-//    private boolean isAllocated;
     private boolean allocated;
 
 

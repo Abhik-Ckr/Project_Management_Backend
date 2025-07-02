@@ -1,16 +1,13 @@
 package com.pm.Project_Management_Server.dto;
  //creating and updating a Project rate card.
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.pm.Project_Management_Server.entity.ResourceLevel;
+import lombok.*;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateProjectRateCardDTO {
-    private String level;
-    private Double hourlyRate;
+    private ResourceLevel level;
+    private Double rate;
 }

@@ -15,24 +15,16 @@ public class ProjectRateCard {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
-
     @Enumerated(EnumType.STRING)
     private ResourceLevel level;
-    private double Rate;
-    private boolean isActive;
+    private double rate;
+    private boolean active;
     private LocalDateTime lastUpdated;
 
 
-    public Boolean getIsActive() {
-        return isActive;
+    public boolean getActive() {return active;
     }
-
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
-    }
-
 }

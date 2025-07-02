@@ -16,6 +16,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RateCardController {
     private final RateCardService rateCardService;
+    @PostMapping
+    public ResponseEntity<ProjectRateCardDTO> addRateCard(@RequestBody ProjectRateCardDTO request) {
+        return ResponseEntity.ok(rateCardService.addRateCard(request));
+    }
 
     @GetMapping("/global")
     public ResponseEntity<List<GlobalRateCardDTO>> getAllGlobalRates() {

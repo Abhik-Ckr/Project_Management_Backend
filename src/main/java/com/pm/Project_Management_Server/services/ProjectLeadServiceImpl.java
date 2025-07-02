@@ -1,4 +1,4 @@
-package com.pm.Project_Management_Server.services.impl;
+package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.ProjectLeadDTO;
 import com.pm.Project_Management_Server.entity.Project;
