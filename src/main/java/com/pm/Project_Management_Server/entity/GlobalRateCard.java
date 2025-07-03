@@ -20,7 +20,7 @@ public class GlobalRateCard {
     private ResourceLevel level;
 
 
-    private double Rate;
+    private double rate;
 
 
 
