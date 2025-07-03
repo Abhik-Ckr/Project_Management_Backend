@@ -7,7 +7,6 @@ import lombok.Data;
 public class ResourceRequiredDTO {
     private Long id;
     private ResourceLevel level;
-    private String expRange;
     private int quantity;
     private Long projectId;
 
