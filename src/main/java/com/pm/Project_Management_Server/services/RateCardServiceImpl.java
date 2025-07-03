@@ -87,7 +87,7 @@ public class RateCardServiceImpl implements RateCardService {
         }
         
         // Deactivate any existing active rate for this project+level
-        Optional<ProjectRateCard> existingOpt = projectRateCardRepository.findByProject_IdAndLevel(projectId, lvl);
+        Optional<ProjectRateCard> existingOpt = projectRateCardRepository.findByProjectIdAndLevel(projectId, lvl);
         if (existingOpt.isPresent() && existingOpt.get().getActive()) {
             ProjectRateCard existing = existingOpt.get();
             existing.setActive(false);

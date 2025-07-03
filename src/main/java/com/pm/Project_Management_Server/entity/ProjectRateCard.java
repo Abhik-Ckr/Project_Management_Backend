@@ -1,30 +1,40 @@
 package com.pm.Project_Management_Server.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
-@Data
+
 @Entity
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@ToString(exclude = "project")
 public class ProjectRateCard {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne
-    @JoinColumn(name = "project_id")
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
+
     @Enumerated(EnumType.STRING)
     private ResourceLevel level;
+
     private double rate;
+
     private boolean active;
+
     private LocalDateTime lastUpdated;
 
+    @PreUpdate
+    public void updateTimestamp() {
+        this.lastUpdated = LocalDateTime.now();
+    }
 
-    public boolean getActive() {return active;
+    public boolean getActive() { return active;
     }
 }

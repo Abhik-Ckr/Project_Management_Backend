@@ -26,7 +26,7 @@ public class IssueController {
             @PathVariable Long projectId,
             @RequestParam(value = "severity", required = false) String severity) {
         if (severity != null) {
-            return ResponseEntity.ok(issueService.getIssuesBySeverity(projectId, severity));
+            return ResponseEntity.ok(issueService.getIssuesBySeverity(severity));
         } else {
             return ResponseEntity.ok(issueService.getIssuesByProject(projectId));
         }

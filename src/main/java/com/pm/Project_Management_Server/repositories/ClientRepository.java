@@ -10,9 +10,13 @@ import java.util.Optional;
 @Repository
 public interface ClientRepository extends JpaRepository<Client, Long> {
 
-    Optional<Client> findByEmail(String email);
+    // Optional: Find by client name if needed
+
 
     List<Client> findByClientRatingGreaterThanEqual(int rating);
 
-    List<Client> findByNameContainingIgnoreCase(String keyword);
+    List<Client> findByNameContainingIgnoreCase(String name);
+
 }
+
+

@@ -39,22 +39,8 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
         return toDTO(lead);
     }
 
-    @Override
-    public ProjectLeadDTO assignLeadToProject(ProjectLeadDTO dto) {
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found"));
 
-        ProjectLead projectLead = ProjectLead.builder()
-                .user(user)
-                .project(project)
-                .build();
-
-        ProjectLead savedLead = projectLeadRepository.save(projectLead);
-        return toDTO(savedLead);
-    }
 
     @Override
     public void removeProjectLead(Long id) {
@@ -66,17 +52,27 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
 
     @Override
     public ProjectLeadDTO getByProjectId(Long projectId) {
-        ProjectLead lead = projectLeadRepository.findByProject_Id(projectId)
-                .orElseThrow(() -> new RuntimeException("Lead not assigned for project"));
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        ProjectLead lead = project.getProjectLead();
+        if (lead == null) {
+            throw new RuntimeException("No lead assigned to this project");
+        }
+
         return toDTO(lead);
     }
 
     // 🔄 DTO Converter
     private ProjectLeadDTO toDTO(ProjectLead lead) {
-        ProjectLeadDTO dto = new ProjectLeadDTO();
-        dto.setId(lead.getId());
-        dto.setUserId(lead.getUser().getId());
-        dto.setProjectId(lead.getProject().getId());
-        return dto;
+        if (lead == null || lead.getUser() == null) {
+            throw new IllegalArgumentException("ProjectLead or associated User is null");
+        }
+
+        return ProjectLeadDTO.builder()
+                .id(lead.getId())
+                .userId(lead.getUser().getId())
+                .build();
     }
+
 }

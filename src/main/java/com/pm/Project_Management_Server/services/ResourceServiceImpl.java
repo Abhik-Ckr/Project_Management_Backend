@@ -57,7 +57,7 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public List<ResourceDTO> getAllocatedResources() {
-        return resourceRepository.findByAllocatedTrue()
+        return resourceRepository.findByAllocated(true)
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -65,7 +65,7 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public List<ResourceDTO> getUnallocatedResources() {
-        return resourceRepository.findByAllocatedFalse()
+        return resourceRepository.findByAllocated(false)
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());

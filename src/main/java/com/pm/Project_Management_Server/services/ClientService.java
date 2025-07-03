@@ -29,9 +29,7 @@ public class ClientService {
         return clientRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
-    public Optional<ClientDTO> getClientByEmail(String email) {
-        return clientRepository.findByEmail(email).map(this::toDTO);
-    }
+
 
     public List<ClientDTO> getClientsByRating(int rating) {
         return clientRepository.findByClientRatingGreaterThanEqual(rating)
@@ -74,13 +72,13 @@ public class ClientService {
     }
 
     private Client toEntity(ClientDTO dto) {
-        return new Client(
-                dto.getId(),
-                dto.getName(),
-                dto.getEmail(),
-                dto.getOnBoardedOn(),
-                dto.getClientRating(),
-                null
-        );
+        return Client.builder()
+                .id(dto.getId())
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .onBoardedOn(dto.getOnBoardedOn())
+                .clientRating(dto.getClientRating())
+                .build();
     }
+
 }

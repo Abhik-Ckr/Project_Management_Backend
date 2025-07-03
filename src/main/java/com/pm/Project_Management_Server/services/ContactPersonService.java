@@ -29,14 +29,12 @@ public class ContactPersonService {
     }
 
     public List<ContactPersonDTO> getByName(String name) {
-        return contactPersonRepository.findByName(name).stream()
+        return contactPersonRepository.findByNameContainingIgnoreCase(name).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
-    public Optional<ContactPersonDTO> getByEmail(String email) {
-        return contactPersonRepository.findByEmail(email).map(this::toDTO);
-    }
+
 
     public Optional<ContactPersonDTO> update(Long id, ContactPersonDTO dto) {
         return contactPersonRepository.findById(id).map(existing -> {

@@ -19,8 +19,8 @@ public class AuthService {
 
     @Transactional
     public UserDTO register(UserCreateDTO dto) {
-//        if (userRepo.existsByUserName(dto.getUserName()))
-//            throw new IllegalStateException("username already taken");
+        if (userRepo.existsByUserName(dto.getUserName()))
+            throw new IllegalStateException("username already taken");
         if (userRepo.existsByEmail(dto.getEmail()))
             throw new IllegalStateException("email already taken");
 

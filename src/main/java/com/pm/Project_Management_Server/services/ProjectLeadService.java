@@ -10,7 +10,7 @@ public interface ProjectLeadService {
 
     ProjectLeadDTO getById(Long id);
 
-    ProjectLeadDTO assignLeadToProject(ProjectLeadDTO dto);
+
 
     void removeProjectLead(Long id);
 

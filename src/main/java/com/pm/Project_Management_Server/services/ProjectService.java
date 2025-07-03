@@ -4,13 +4,12 @@ import com.pm.Project_Management_Server.dto.ProjectDTO;
 import com.pm.Project_Management_Server.entity.Project;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ProjectService {
 
     List<ProjectDTO> getAllProjects();
 
-    Optional<ProjectDTO> getProjectById(Long id);
+    ProjectDTO getProjectById(Long id);
 
     ProjectDTO createProject(ProjectDTO projectDTO);
 

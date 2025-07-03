@@ -9,6 +9,7 @@ import com.pm.Project_Management_Server.entity.Project;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,7 +30,7 @@ public class IssueServiceImpl implements IssueService{
         issue.setSeverity(Issue.Severity.valueOf(dto.getSeverity().toUpperCase()));
         issue.setDescription(dto.getDescription());
         issue.setCreatedBy(dto.getCreatedBy());
-        issue.setCreatedDate(LocalDateTime.now());
+        issue.setCreatedDate(LocalDate.now());
         issue.setStatus(Issue.IssueStatus.OPEN);
         
         Issue saved = issueRepository.save(issue);
@@ -38,18 +39,20 @@ public class IssueServiceImpl implements IssueService{
 
     @Override
     public List<IssueDTO> getIssuesByProject(Long projectId) {
-        return issueRepository.findAllByProject_Id(projectId).stream()
+        return issueRepository.findByProjectId(projectId).stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<IssueDTO> getIssuesBySeverity(Long projectId, String severity) {
+    public List<IssueDTO> getIssuesBySeverity(String severity) {
         Issue.Severity severityEnum = Issue.Severity.valueOf(severity.toUpperCase());
-        return issueRepository.findByProject_IdAndSeverity(projectId, severityEnum).stream()
+        return issueRepository.findBySeverity(severityEnum).stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
+
+
 
     @Override
     public IssueDTO closeIssue(Long id) {
@@ -68,7 +71,7 @@ public class IssueServiceImpl implements IssueService{
         dto.setSeverity(issue.getSeverity().name());
         dto.setDescription(issue.getDescription());
         dto.setCreatedBy(issue.getCreatedBy());
-        dto.setCreatedDate(issue.getCreatedDate().toLocalDate());
+        dto.setCreatedDate(issue.getCreatedDate());
         dto.setStatus(issue.getStatus().name());
         return dto;
     }

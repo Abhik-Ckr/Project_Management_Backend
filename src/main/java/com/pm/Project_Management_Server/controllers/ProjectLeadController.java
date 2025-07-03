@@ -37,11 +37,7 @@ public class ProjectLeadController {
     }
 
     // ➕ Assign a lead to a project
-    @PostMapping
-    public ResponseEntity<ProjectLeadDTO> assignLead(@RequestBody ProjectLeadDTO dto) {
-        ProjectLeadDTO savedLead = projectLeadService.assignLeadToProject(dto);
-        return ResponseEntity.ok(savedLead);
-    }
+
 
     // ❌ Remove a project lead by ID
     @DeleteMapping("/{id}")
