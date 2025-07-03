@@ -3,17 +3,14 @@ package com.pm.Project_Management_Server.services;
 import com.pm.Project_Management_Server.dto.ProjectLeadDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.ProjectLead;
-import com.pm.Project_Management_Server.entity.User;
 import com.pm.Project_Management_Server.repositories.ProjectLeadRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.repositories.UserRepository;
-import com.pm.Project_Management_Server.services.ProjectLeadService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

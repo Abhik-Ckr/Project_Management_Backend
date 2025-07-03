@@ -15,7 +15,7 @@ public class ProjectLead {
     private Long id;
 
     @OneToOne
-    private User user;
+    private Users user;
 
 
 

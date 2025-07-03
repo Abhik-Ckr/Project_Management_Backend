@@ -1,10 +1,9 @@
 package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.UserDTO;
-import com.pm.Project_Management_Server.entity.User;
+import com.pm.Project_Management_Server.entity.Users;
 import com.pm.Project_Management_Server.entity.UserType;
 import com.pm.Project_Management_Server.repositories.UserRepository;
-import com.pm.Project_Management_Server.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -48,7 +47,7 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    private UserDTO mapToDTO(User user) {
+    private UserDTO mapToDTO(Users user) {
         return new UserDTO(
                 user.getId(),
                 user.getUserName(),

@@ -24,7 +24,7 @@ public class AuthService {
         if (userRepo.existsByEmail(dto.getEmail()))
             throw new IllegalStateException("email already taken");
 
-        User user = new User();
+        Users user = new Users();
         user.setUserName(dto.getUserName());
         user.setEmail(dto.getEmail());
         user.setPassword(encoder.encode(dto.getPassword()));
@@ -36,7 +36,7 @@ public class AuthService {
 
     //temporarily storing exceptions in the file!!!
     public String login(String email, String rawPwd) {
-        User user = userRepo.findByEmail(email)
+        Users user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("bad credentials"));
         if (!encoder.matches(rawPwd, user.getPassword()))
             throw new IllegalArgumentException("bad credentials");
