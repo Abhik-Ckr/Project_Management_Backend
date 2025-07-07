@@ -1,6 +1,7 @@
 package com.pm.Project_Management_Server.controllers;
 
 import com.pm.Project_Management_Server.dto.ProjectLeadDTO;
+import com.pm.Project_Management_Server.dto.UserDTO;
 import com.pm.Project_Management_Server.services.ProjectLeadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +17,20 @@ public class ProjectLeadController {
     private final ProjectLeadService projectLeadService;
 
     // 🔍 Get all project leads
+    // ➕ Add a new project lead
+    @PostMapping
+    public ResponseEntity<ProjectLeadDTO> addProjectLead(@RequestBody ProjectLeadDTO projectLeadDTO) {
+        ProjectLeadDTO savedLead = projectLeadService.addProjectLead(projectLeadDTO);
+        return ResponseEntity.ok(savedLead);
+    }
+
+
     @GetMapping
-    public ResponseEntity<List<ProjectLeadDTO>> getAllLeads() {
-        List<ProjectLeadDTO> leads = projectLeadService.getAllProjectLeads();
+    public ResponseEntity<List<UserDTO>> getAllProjectLeads() {
+        List<UserDTO> leads = projectLeadService.getAllProjectLeadUsers();
         return ResponseEntity.ok(leads);
     }
+
 
     // 🔍 Get a project lead by ID
     @GetMapping("/{id}")

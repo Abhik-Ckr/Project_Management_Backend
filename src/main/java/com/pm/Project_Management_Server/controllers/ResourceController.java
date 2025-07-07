@@ -21,6 +21,10 @@ public class ResourceController {
     public ResponseEntity<ResourceDTO> createResource(@RequestBody ResourceDTO dto) {
         return ResponseEntity.ok(resourceService.addResource(dto));
     }
+    @GetMapping
+    public List<ResourceDTO> getAllResources() {
+        return resourceService.getAllResources();
+    }
 
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<ResourceDTO>> getResourcesByProject(@PathVariable Long projectId) {

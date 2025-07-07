@@ -31,9 +31,9 @@ public class Project {
     @JoinColumn(name = "client_id")
     private Client client;
 
-    @OneToOne
-    @JoinColumn(name = "contact_person_id",nullable = true)
-    private ContactPerson contactPerson;
+//    @OneToOne
+//    @JoinColumn(name = "contact_person_id",nullable = true)
+//    private ContactPerson contactPerson;
 
     @OneToOne
     @JoinColumn(name = "project_lead_id",nullable = true)

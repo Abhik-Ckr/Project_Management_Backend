@@ -17,7 +17,8 @@ public class ProjectLead {
     @OneToOne
     private Users user;
 
-
+    public void setUserId(Long userId) {
+    }
 
 
     // 🔁 Do NOT include Project here to avoid cycle

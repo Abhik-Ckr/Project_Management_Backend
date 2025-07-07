@@ -21,6 +21,11 @@ public class IssueController {
         IssueDTO created = issueService.createIssue(dto);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
+    @GetMapping
+    public List<IssueDTO> getAllIssues() {
+        return issueService.getAllIssues();
+    }
+
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<IssueDTO>> getIssuesByProject(
             @PathVariable Long projectId,

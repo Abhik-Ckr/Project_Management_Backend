@@ -16,9 +16,7 @@ public class ProjectDTO {
     private String department;
     private String status;            // Enum as String: ACTIVE, COMPLETED, etc.
     private Double budget;
-
     private Long clientId;
-    private Long contactPersonId;
     private Long projectLeadId;
     private Long projectRateCardId;
 }

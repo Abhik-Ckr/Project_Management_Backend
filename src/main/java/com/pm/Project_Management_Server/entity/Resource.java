@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "project")
+
 public class Resource {
 
     @Id
@@ -25,7 +25,7 @@ public class Resource {
     private LocalDate startDate;
     private LocalDate endDate;
 
-    private int exp;
+
     private boolean allocated;
 
     @ManyToOne

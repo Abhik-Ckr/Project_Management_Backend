@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.services;
 
+import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectDTO;
 import com.pm.Project_Management_Server.entity.Project;
 
@@ -26,6 +27,8 @@ public interface ProjectService {
     double calculateBudgetSpent(Project project);
 
     Double calculateBudgetSpentById(Long id);
+
+    ContactPersonDTO getContactPersonByProjectId(Long projectId);
 
     // Optional: Keep advanced/relationship methods here as needed
 }

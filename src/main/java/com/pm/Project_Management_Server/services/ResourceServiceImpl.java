@@ -37,6 +37,13 @@ public class ResourceServiceImpl implements ResourceService {
         response.setProjectId(project.getId());
         return response;
     }
+    @Override
+    public List<ResourceDTO> getAllResources() {
+        List<Resource> resources = resourceRepository.findAll();
+        return resources.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public List<ResourceDTO> getResourcesByProject(Long projectId) {

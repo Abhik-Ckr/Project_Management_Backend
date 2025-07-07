@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.services;
 
+import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectDTO;
 import com.pm.Project_Management_Server.entity.*;
 import com.pm.Project_Management_Server.repositories.*;
@@ -7,7 +8,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,16 +37,20 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 
-
     @Override
     public double calculateBudgetSpent(Project project) {
         List<Resource> resources = resourceRepo.findByProjectId(project.getId());
         double totalSpent = 0.0;
 
         for (Resource resource : resources) {
-            if (resource.getStartDate() != null && resource.getEndDate() != null) {
+            if (resource.getStartDate() != null) {
+                // Use endDate if available, otherwise use today's date
+                LocalDate endDate = (resource.getEndDate() != null)
+                        ? resource.getEndDate()
+                        : LocalDate.now();
+
                 long days = java.time.temporal.ChronoUnit.DAYS.between(
-                        resource.getStartDate(), resource.getEndDate());
+                        resource.getStartDate(), endDate);
 
                 double rate = projectRateCardRepository
                         .findByProjectIdAndLevel(project.getId(), resource.getLevel())
@@ -82,14 +87,10 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 
-
-
-
     @Override
     public ProjectDTO getProjectById(Long id) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
-
         return mapToDTO(project);
     }
 
@@ -106,16 +107,10 @@ public class ProjectServiceImpl implements ProjectService {
             project.setDepartment(dto.getDepartment());
             project.setType(dto.getType());
             project.setStatus(Project.Status.valueOf(dto.getStatus()));
-            project.setBudget(dto.getBudget() != null ? dto.getBudget().doubleValue() : null);
-
+            project.setBudget(dto.getBudget() != null ? dto.getBudget() : null);
             if (dto.getClientId() != null) {
                 project.setClient(clientRepo.findById(dto.getClientId())
                         .orElseThrow(() -> new RuntimeException("Client not found")));
-            }
-
-            if (dto.getContactPersonId() != null) {
-                project.setContactPerson(contactPersonRepo.findById(dto.getContactPersonId())
-                        .orElseThrow(() -> new RuntimeException("Contact person not found")));
             }
 
             if (dto.getProjectLeadId() != null) {
@@ -151,7 +146,6 @@ public class ProjectServiceImpl implements ProjectService {
                 .collect(Collectors.toList());
     }
 
-
     private Project getProjectEntity(Long id) {
         return projectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -171,15 +165,23 @@ public class ProjectServiceImpl implements ProjectService {
         dto.setDepartment(project.getDepartment());
         dto.setStatus(project.getStatus() != null ? project.getStatus().name() : null);
         dto.setBudget(project.getBudget());
-
         dto.setClientId(project.getClient() != null ? project.getClient().getId() : null);
-        dto.setContactPersonId(project.getContactPerson() != null ? project.getContactPerson().getId() : null);
         dto.setProjectLeadId(project.getProjectLead() != null ? project.getProjectLead().getId() : null);
         dto.setProjectRateCardId(project.getProjectRateCard() != null ? project.getProjectRateCard().getId() : null);
-
         return dto;
     }
 
+    @Override
+    public ContactPersonDTO getContactPersonByProjectId(Long projectId) {
+        ContactPerson person = contactPersonRepo.findByProjectId(projectId)
+                .orElseThrow(() -> new RuntimeException("No contact person found for project ID: " + projectId));
+        return new ContactPersonDTO(
+                person.getId(),
+                person.getName(),
+                person.getEmail(),
+                person.getProject().getId()
+        );
+    }
 
     private Project mapToEntity(ProjectDTO dto) {
         Project.ProjectBuilder builder = Project.builder()
@@ -197,12 +199,6 @@ public class ProjectServiceImpl implements ProjectService {
             Client client = clientRepo.findById(dto.getClientId())
                     .orElseThrow(() -> new RuntimeException("Client not found"));
             builder.client(client);
-        }
-
-        if (dto.getContactPersonId() != null) {
-            ContactPerson contactPerson = contactPersonRepo.findById(dto.getContactPersonId())
-                    .orElseThrow(() -> new RuntimeException("Contact person not found"));
-            builder.contactPerson(contactPerson);
         }
 
         if (dto.getProjectLeadId() != null) {

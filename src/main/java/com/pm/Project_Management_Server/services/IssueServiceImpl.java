@@ -32,15 +32,14 @@ public class IssueServiceImpl implements IssueService{
         issue.setCreatedBy(dto.getCreatedBy());
         issue.setCreatedDate(LocalDate.now());
         issue.setStatus(Issue.IssueStatus.OPEN);
-        
         Issue saved = issueRepository.save(issue);
-        return toResponseDTO(saved);
+        return convertToDTO(saved);
     }
 
     @Override
     public List<IssueDTO> getIssuesByProject(Long projectId) {
         return issueRepository.findByProjectId(projectId).stream()
-                .map(this::toResponseDTO)
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -48,7 +47,7 @@ public class IssueServiceImpl implements IssueService{
     public List<IssueDTO> getIssuesBySeverity(String severity) {
         Issue.Severity severityEnum = Issue.Severity.valueOf(severity.toUpperCase());
         return issueRepository.findBySeverity(severityEnum).stream()
-                .map(this::toResponseDTO)
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -61,10 +60,16 @@ public class IssueServiceImpl implements IssueService{
         
         issue.setStatus(Issue.IssueStatus.CLOSED);
         Issue saved = issueRepository.save(issue);
-        return toResponseDTO(saved);
+        return convertToDTO(saved);
     }
-    
-    private IssueDTO toResponseDTO(Issue issue) {
+
+    @Override
+    public List<IssueDTO> getAllIssues() {
+        List<Issue> issues = issueRepository.findAll();
+        return issues.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    private IssueDTO convertToDTO(Issue issue) {
         IssueDTO dto = new IssueDTO();
         dto.setId(issue.getId());
         dto.setProjectId(issue.getProject().getId());

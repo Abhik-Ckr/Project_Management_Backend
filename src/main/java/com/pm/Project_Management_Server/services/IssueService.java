@@ -15,4 +15,6 @@ public interface IssueService {
     List<IssueDTO> getIssuesBySeverity(String severity);
 
     IssueDTO closeIssue(Long id);
+
+    List<IssueDTO> getAllIssues();
 }

@@ -7,7 +7,7 @@ import java.util.List;
 public interface ResourceService {
 
     ResourceDTO addResource(ResourceDTO dto);
-
+    List<ResourceDTO> getAllResources();
     List<ResourceDTO> getResourcesByProject(Long projectId);
 
     List<ResourceDTO> getResourcesByLevel(String level);

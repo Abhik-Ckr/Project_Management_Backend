@@ -9,4 +9,6 @@ public interface HighlightService {
     HighlightDTO addHighlight(CreateHighlightDTO dto);
     List<HighlightDTO> getHighlightsByProject(Long projectId);
     void deleteHighlight(Long id);
+
+    List<HighlightDTO> getAllHighlights();
 }

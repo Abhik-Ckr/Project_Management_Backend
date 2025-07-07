@@ -14,7 +14,7 @@ public interface ContactPersonRepository extends JpaRepository<ContactPerson, Lo
     List<ContactPerson> findByNameContainingIgnoreCase(String name);
 
 
-    List<ContactPerson> findByProjectId(Long projectId);
+    Optional<ContactPerson> findByProjectId(Long projectId);
 
 
 }

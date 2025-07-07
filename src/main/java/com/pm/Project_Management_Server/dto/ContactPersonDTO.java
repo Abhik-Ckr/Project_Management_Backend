@@ -11,5 +11,4 @@ public class ContactPersonDTO {
     private String email;
     private Long projectId;
 
-
 }

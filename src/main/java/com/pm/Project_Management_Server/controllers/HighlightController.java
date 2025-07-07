@@ -22,6 +22,10 @@ public class HighlightController {
         HighlightDTO created = highlightService.addHighlight(dto);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
+    @GetMapping
+    public List<HighlightDTO> getAllHighlights() {
+        return highlightService.getAllHighlights();
+    }
 
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<HighlightDTO>> getHighlightsByProject(@PathVariable Long projectId) {
