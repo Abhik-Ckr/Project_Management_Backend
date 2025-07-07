@@ -20,6 +20,11 @@ public class ClientController {
         return ResponseEntity.ok(clientService.createClient(dto));
     }
 
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<ClientDTO> getClientByProjectId(@PathVariable Long projectId) {
+        return ResponseEntity.ok(clientService.getClientByProjectId(projectId));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ClientDTO> getClient(@PathVariable Long id) {
         return clientService.getClientById(id)

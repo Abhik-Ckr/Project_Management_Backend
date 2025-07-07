@@ -3,6 +3,7 @@ package com.pm.Project_Management_Server.services;
 import com.pm.Project_Management_Server.dto.ClientDTO;
 import com.pm.Project_Management_Server.entity.Client;
 import com.pm.Project_Management_Server.repositories.ClientRepository;
+import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 public class ClientService {
 
     private final ClientRepository clientRepository;
+    private final ProjectRepository projectRepository;
 
     public ClientDTO createClient(ClientDTO dto) {
         Client saved = clientRepository.save(toEntity(dto));
@@ -28,7 +30,11 @@ public class ClientService {
     public List<ClientDTO> getAllClients() {
         return clientRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
-
+    public ClientDTO getClientByProjectId(Long projectId) {
+        return projectRepository.findClientById(projectId)
+                .map(this::toDTO)
+                .orElseThrow(() -> new RuntimeException("Client not found for given project ID"));
+    }
 
 
     public List<ClientDTO> getClientsByRating(int rating) {

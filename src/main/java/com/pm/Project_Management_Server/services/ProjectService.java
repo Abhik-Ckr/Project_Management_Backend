@@ -18,6 +18,9 @@ public interface ProjectService {
 
     void deleteProject(Long id);
     long countProjectsOverBudget();
+
+    ProjectDTO getProjectByLeadId(Long leadId);
+
     List<ProjectDTO> getProjectsByClient(Long clientId);
 
     List<ProjectDTO> getProjectsByStatus(Project.Status status);
