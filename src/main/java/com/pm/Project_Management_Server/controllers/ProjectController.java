@@ -38,7 +38,7 @@ public class ProjectController {
     public ResponseEntity<ProjectDTO> updateProject(@PathVariable Long id, @RequestBody ProjectDTO projectDTO) {
         return ResponseEntity.ok(projectService.updateProject(id, projectDTO));
     }
-    @GetMapping("/projects/{projectId}/contact-person")
+    @GetMapping("/{projectId}/contact-person")
     public ResponseEntity<ContactPersonDTO> getContactPersonForProject(@PathVariable Long projectId) {
         ContactPersonDTO dto = projectService.getContactPersonByProjectId(projectId);
         return ResponseEntity.ok(dto);
@@ -51,6 +51,10 @@ public class ProjectController {
     }
 
     // ---------- Client-based Queries ----------
+    @GetMapping("/lead/{leadId}")
+    public ResponseEntity<ProjectDTO> getProjectByLeadId(@PathVariable Long leadId) {
+        return ResponseEntity.ok(projectService.getProjectByLeadId(leadId));
+    }
 
     @GetMapping("/client/{clientId}")
     public ResponseEntity<List<ProjectDTO>> getProjectsByClient(@PathVariable Long clientId) {

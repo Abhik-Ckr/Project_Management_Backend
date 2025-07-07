@@ -133,6 +133,13 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public ProjectDTO getProjectByLeadId(Long leadId) {
+        return projectRepository.findByProjectLeadId(leadId)
+                .map(this::mapToDTO)
+                .orElseThrow(() -> new RuntimeException("No project found for this lead"));
+    }
+
+    @Override
     public List<ProjectDTO> getProjectsByClient(Long clientId) {
         return projectRepository.findByClientId(clientId).stream()
                 .map(this::mapToDTO)
