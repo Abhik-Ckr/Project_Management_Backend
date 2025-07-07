@@ -9,7 +9,12 @@ import java.util.Optional;
 
 @Repository
 public interface ContactPersonRepository extends JpaRepository<ContactPerson, Long> {
-    List<ContactPerson> findByName(String name);
-    Optional<ContactPerson> findByEmail(String email);
+
+
+    List<ContactPerson> findByNameContainingIgnoreCase(String name);
+
+
+    Optional<ContactPerson> findByProjectId(Long projectId);
+
 
 }

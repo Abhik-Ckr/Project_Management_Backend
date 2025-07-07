@@ -3,8 +3,6 @@ package com.pm.Project_Management_Server.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
-
 @Entity
 @Data
 @NoArgsConstructor
@@ -23,52 +21,25 @@ public class Project {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    private Double budget;
+
+    public enum Status {
+        ACTIVE, COMPLETED, ON_HOLD
+    }
+
     @ManyToOne
     @JoinColumn(name = "client_id")
     private Client client;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Resource> Resources;
-
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Highlight> Highlights;
-
-
+//    @OneToOne
+//    @JoinColumn(name = "contact_person_id",nullable = true)
+//    private ContactPerson contactPerson;
 
     @OneToOne
-    @JoinColumn(name = "project_rate_card_id")
-    private ProjectRateCard projectRateCard;
-
-    private Double budget;
-
-
-    @ManyToOne
-    @JoinColumn(name = "contact_person_id")
-    private ContactPerson contactPerson;
-
-
-   @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-   private List<Issue> issues;
-
-    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
+    @JoinColumn(name = "project_lead_id",nullable = true)
     private ProjectLead projectLead;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OpenPosition> openPositions;
-
-
-
-
     @OneToOne
-    @JoinColumn(name = "contract_id")
-    private Contract contract;
-
-
-    public enum Status {
-        OPEN,
-        IN_PROGRESS,
-        COMPLETED,
-        ON_HOLD,
-        CANCELLED
-    }
+    @JoinColumn(name = "project_rate_card_id",nullable = true)
+    private ProjectRateCard projectRateCard;
 }

@@ -1,15 +1,17 @@
 package com.pm.Project_Management_Server.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "project")
 public class Issue {
 
     @Id
@@ -24,13 +26,16 @@ public class Issue {
 
     private String createdBy;
 
-    private LocalDateTime createdDate;
+    private LocalDate createdDate;
+
+    private LocalDate updatedDate;
 
     @Enumerated(EnumType.STRING)
     private IssueStatus status;
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
+    @JsonBackReference
     private Project project;
 
     public enum Severity {
@@ -43,6 +48,11 @@ public class Issue {
 
     @PrePersist
     public void onCreate() {
-        this.createdDate = LocalDateTime.now();
+        this.createdDate = LocalDate.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedDate = LocalDate.now();
     }
 }

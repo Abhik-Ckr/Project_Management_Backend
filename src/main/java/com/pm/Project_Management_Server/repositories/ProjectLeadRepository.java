@@ -12,8 +12,8 @@ public interface ProjectLeadRepository extends JpaRepository<ProjectLead, Long> 
 
     Optional<ProjectLead> findByUser_Id(Long userId);
 
-    Optional<ProjectLead> findByProject_Id(Long projectId);
 
-    Optional<ProjectLead> findByProjectId(Long projectId);
+
+
 }
 

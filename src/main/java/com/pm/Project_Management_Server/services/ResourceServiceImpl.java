@@ -37,6 +37,13 @@ public class ResourceServiceImpl implements ResourceService {
         response.setProjectId(project.getId());
         return response;
     }
+    @Override
+    public List<ResourceDTO> getAllResources() {
+        List<Resource> resources = resourceRepository.findAll();
+        return resources.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public List<ResourceDTO> getResourcesByProject(Long projectId) {
@@ -57,7 +64,7 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public List<ResourceDTO> getAllocatedResources() {
-        return resourceRepository.findByAllocatedTrue()
+        return resourceRepository.findByAllocated(true)
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -65,7 +72,7 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public List<ResourceDTO> getUnallocatedResources() {
-        return resourceRepository.findByAllocatedFalse()
+        return resourceRepository.findByAllocated(false)
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());

@@ -1,6 +1,7 @@
 package com.pm.Project_Management_Server.controllers;
 
 
+import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.services.ProjectService;
@@ -14,9 +15,7 @@ import java.util.List;
 @RequestMapping("/api/projects")
 @RequiredArgsConstructor
 public class ProjectController {
-
     private final ProjectService projectService;
-
     // ---------- Basic CRUD ----------
 
     @GetMapping
@@ -26,10 +25,9 @@ public class ProjectController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectDTO> getProjectById(@PathVariable Long id) {
-        return projectService.getProjectById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(projectService.getProjectById(id));
     }
+
 
     @PostMapping
     public ResponseEntity<ProjectDTO> createProject(@RequestBody ProjectDTO projectDTO) {
@@ -39,6 +37,11 @@ public class ProjectController {
     @PutMapping("/{id}")
     public ResponseEntity<ProjectDTO> updateProject(@PathVariable Long id, @RequestBody ProjectDTO projectDTO) {
         return ResponseEntity.ok(projectService.updateProject(id, projectDTO));
+    }
+    @GetMapping("/projects/{projectId}/contact-person")
+    public ResponseEntity<ContactPersonDTO> getContactPersonForProject(@PathVariable Long projectId) {
+        ContactPersonDTO dto = projectService.getContactPersonByProjectId(projectId);
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")
@@ -72,7 +75,6 @@ public class ProjectController {
     public ResponseEntity<Long> countProjectsOverBudget() {
         return ResponseEntity.ok(projectService.countProjectsOverBudget());
     }
-
     // ---------- Budget Spent for a Project ----------
 
     @GetMapping("/{id}/budget-spent")

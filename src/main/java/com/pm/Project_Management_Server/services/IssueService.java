@@ -10,6 +10,11 @@ import java.util.List;
 public interface IssueService {
     IssueDTO createIssue(CreateIssueDTO dto);
     List<IssueDTO> getIssuesByProject(Long projectId);
-    List<IssueDTO> getIssuesBySeverity(Long projectId, String severity);
+
+
+    List<IssueDTO> getIssuesBySeverity(String severity);
+
     IssueDTO closeIssue(Long id);
+
+    List<IssueDTO> getAllIssues();
 }

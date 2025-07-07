@@ -32,12 +32,7 @@ public class ClientController {
         return clientService.getAllClients();
     }
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<ClientDTO> getByEmail(@PathVariable String email) {
-        return clientService.getClientByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+
 
     @GetMapping("/rating/{rating}")
     public List<ClientDTO> getByRating(@PathVariable int rating) {

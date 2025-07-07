@@ -37,12 +37,7 @@ public class ContactPersonController {
         return contactPersonService.getByName(name);
     }
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<ContactPersonDTO> getByEmail(@PathVariable String email) {
-        return contactPersonService.getByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<ContactPersonDTO> update(@PathVariable Long id, @RequestBody ContactPersonDTO dto) {

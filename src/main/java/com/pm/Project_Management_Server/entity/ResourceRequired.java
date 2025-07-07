@@ -1,14 +1,14 @@
 package com.pm.Project_Management_Server.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = "project")
 public class ResourceRequired {
 
     @Id
@@ -18,10 +18,11 @@ public class ResourceRequired {
     @Enumerated(EnumType.STRING)
     private ResourceLevel resourceLevel;
 
-    private String expRange;
     private int quantity;
 
     @ManyToOne
-    @JoinColumn(name = "project_id")
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
+
+
 }

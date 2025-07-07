@@ -1,20 +1,21 @@
 package com.pm.Project_Management_Server.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class IssueDTO {
     private Long id;
-    private Long projectId;
-    private String severity;      // High / Urgent / Medium / Low
+    private String severity;      // Enum as String: HIGH, MEDIUM, etc.
     private String description;
     private String createdBy;
+
     private LocalDate createdDate;
-    private String status;        // Open / Resolved / InProgress etc.
+    private LocalDate updatedDate;
+
+    private String status;        // Enum as String: OPEN, CLOSED, etc.
+
+    private Long projectId;
 }

@@ -1,6 +1,8 @@
 package com.pm.Project_Management_Server.services;
 
+import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectLeadDTO;
+import com.pm.Project_Management_Server.dto.UserDTO;
 
 import java.util.List;
 
@@ -10,9 +12,16 @@ public interface ProjectLeadService {
 
     ProjectLeadDTO getById(Long id);
 
-    ProjectLeadDTO assignLeadToProject(ProjectLeadDTO dto);
+
 
     void removeProjectLead(Long id);
 
     ProjectLeadDTO getByProjectId(Long projectId);
+
+
+
+
+    ProjectLeadDTO addProjectLead(ProjectLeadDTO projectLeadDTO);
+
+    List<UserDTO> getAllProjectLeadUsers();
 }

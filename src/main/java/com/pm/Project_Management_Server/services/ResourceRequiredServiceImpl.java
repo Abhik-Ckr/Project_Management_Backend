@@ -28,7 +28,6 @@ public class ResourceRequiredServiceImpl implements ResourceRequiredService {
         ResourceRequired requirement = new ResourceRequired();
         requirement.setProject(project);
         requirement.setResourceLevel(dto.getLevel());
-        requirement.setExpRange(dto.getExpRange());
         requirement.setQuantity(dto.getQuantity());
 
         ResourceRequired saved = resourceRequiredRepository.save(requirement);
@@ -38,7 +37,7 @@ public class ResourceRequiredServiceImpl implements ResourceRequiredService {
 
     @Override
     public List<ResourceRequiredDTO> getRequirementsByProject(Long projectId) {
-        return resourceRequiredRepository.findAllByProjectId(projectId)
+        return resourceRequiredRepository.findByProjectId(projectId)
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -50,7 +49,6 @@ public class ResourceRequiredServiceImpl implements ResourceRequiredService {
                 .orElseThrow(() -> new RuntimeException("Requirement not found"));
 
         existing.setResourceLevel(dto.getLevel());
-        existing.setExpRange(dto.getExpRange());
         existing.setQuantity(dto.getQuantity());
 
         ResourceRequired updated = resourceRequiredRepository.save(existing);
@@ -69,7 +67,6 @@ public class ResourceRequiredServiceImpl implements ResourceRequiredService {
         ResourceRequiredDTO dto = new ResourceRequiredDTO();
         dto.setId(requirement.getId());
         dto.setLevel(requirement.getResourceLevel());
-        dto.setExpRange(requirement.getExpRange());
         dto.setQuantity(requirement.getQuantity());
         dto.setProjectId(requirement.getProject().getId());
         return dto;

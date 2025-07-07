@@ -1,19 +1,21 @@
-package com.pm.Project_Management_Server.services.impl;
+package com.pm.Project_Management_Server.services;
 
+import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectLeadDTO;
+import com.pm.Project_Management_Server.dto.UserDTO;
+import com.pm.Project_Management_Server.entity.ContactPerson;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.ProjectLead;
-import com.pm.Project_Management_Server.entity.User;
+import com.pm.Project_Management_Server.entity.Users;
+import com.pm.Project_Management_Server.repositories.ContactPersonRepository;
 import com.pm.Project_Management_Server.repositories.ProjectLeadRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.repositories.UserRepository;
-import com.pm.Project_Management_Server.services.ProjectLeadService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +26,7 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
     private final ProjectLeadRepository projectLeadRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final ContactPersonRepository contactPersonRepository;
 
     @Override
     public List<ProjectLeadDTO> getAllProjectLeads() {
@@ -39,22 +42,8 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
         return toDTO(lead);
     }
 
-    @Override
-    public ProjectLeadDTO assignLeadToProject(ProjectLeadDTO dto) {
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found"));
 
-        ProjectLead projectLead = ProjectLead.builder()
-                .user(user)
-                .project(project)
-                .build();
-
-        ProjectLead savedLead = projectLeadRepository.save(projectLead);
-        return toDTO(savedLead);
-    }
 
     @Override
     public void removeProjectLead(Long id) {
@@ -66,17 +55,68 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
 
     @Override
     public ProjectLeadDTO getByProjectId(Long projectId) {
-        ProjectLead lead = projectLeadRepository.findByProject_Id(projectId)
-                .orElseThrow(() -> new RuntimeException("Lead not assigned for project"));
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        ProjectLead lead = project.getProjectLead();
+        if (lead == null) {
+            throw new RuntimeException("No lead assigned to this project");
+        }
+
         return toDTO(lead);
     }
 
+
+    @Override
+    public ProjectLeadDTO addProjectLead(ProjectLeadDTO projectLeadDTO) {
+        // 1. Fetch the user by ID
+        Users user = userRepository.findById(projectLeadDTO.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + projectLeadDTO.getUserId()));
+
+        // 2. Create and populate the ProjectLead entity
+        ProjectLead projectLead = new ProjectLead();
+        projectLead.setUser(user);
+
+        // 3. Save the ProjectLead entity
+        ProjectLead savedLead = projectLeadRepository.save(projectLead);
+
+        // 4. Map saved entity to DTO
+        ProjectLeadDTO savedDTO = new ProjectLeadDTO();
+        savedDTO.setId(savedLead.getId());
+        savedDTO.setUserId(savedLead.getUser().getId());
+
+        return savedDTO;
+    }
+
+    @Override
+    public List<UserDTO> getAllProjectLeadUsers() {
+        List<ProjectLead> leads = projectLeadRepository.findAll();
+
+        return leads.stream()
+                .map(ProjectLead::getUser)  // get Users from each ProjectLead
+                .map(user -> {
+                    UserDTO dto = new UserDTO();
+                    dto.setId(user.getId());
+                    dto.setUserName(user.getUserName());
+                    dto.setEmail(user.getEmail());
+                    // map any other fields needed
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+
+
     // 🔄 DTO Converter
     private ProjectLeadDTO toDTO(ProjectLead lead) {
-        ProjectLeadDTO dto = new ProjectLeadDTO();
-        dto.setId(lead.getId());
-        dto.setUserId(lead.getUser().getId());
-        dto.setProjectId(lead.getProject().getId());
-        return dto;
+        if (lead == null || lead.getUser() == null) {
+            throw new IllegalArgumentException("ProjectLead or associated User is null");
+        }
+
+        return ProjectLeadDTO.builder()
+                .id(lead.getId())
+                .userId(lead.getUser().getId())
+                .build();
     }
+
 }

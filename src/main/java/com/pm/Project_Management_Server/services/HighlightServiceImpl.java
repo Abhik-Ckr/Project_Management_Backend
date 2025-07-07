@@ -43,13 +43,13 @@ public class HighlightServiceImpl implements HighlightService{
         highlight.setCreatedOn(today);
         
         Highlight saved = highlightRepository.save(highlight);
-        return toResponseDTO(saved);
+        return convertToDTO(saved);
     }
 
     @Override
     public List<HighlightDTO> getHighlightsByProject(Long projectId) {
         return highlightRepository.findByProjectId(projectId).stream()
-                .map(this::toResponseDTO)
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -60,8 +60,14 @@ public class HighlightServiceImpl implements HighlightService{
         }
         highlightRepository.deleteById(id);
     }
-    
-    private HighlightDTO toResponseDTO(Highlight highlight) {
+
+    @Override
+    public List<HighlightDTO> getAllHighlights() {
+        List<Highlight> highlights = highlightRepository.findAll();
+        return highlights.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    private HighlightDTO convertToDTO(Highlight highlight) {
         HighlightDTO dto = new HighlightDTO();
         dto.setId(highlight.getId());
         dto.setProjectId(highlight.getProject().getId());

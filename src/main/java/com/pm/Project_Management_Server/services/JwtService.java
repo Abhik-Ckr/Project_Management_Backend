@@ -1,6 +1,6 @@
 package com.pm.Project_Management_Server.services;
 
-import com.pm.Project_Management_Server.entity.User;
+import com.pm.Project_Management_Server.entity.Users;
 import com.pm.Project_Management_Server.repositories.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -22,7 +22,7 @@ public class JwtService {
     }
 
     public String generateToken(String email) {
-        User user = userRepo.findByEmail(email)
+        Users user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         return Jwts.builder()
