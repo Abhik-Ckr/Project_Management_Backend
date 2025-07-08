@@ -41,8 +41,8 @@ public class ProjectLeadController {
 
     // 🔍 Get a project lead by project ID
     @GetMapping("/project/{projectId}")
-    public ResponseEntity<ProjectLeadDTO> getLeadByProjectId(@PathVariable Long projectId) {
-        ProjectLeadDTO lead = projectLeadService.getByProjectId(projectId);
+    public ResponseEntity<UserDTO> getLeadByProjectId(@PathVariable Long projectId) {
+        UserDTO lead = projectLeadService.getUserByProjectId(projectId);
         return ResponseEntity.ok(lead);
     }
 

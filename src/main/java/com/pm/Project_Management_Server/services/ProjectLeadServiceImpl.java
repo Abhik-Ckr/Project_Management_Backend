@@ -1,9 +1,7 @@
 package com.pm.Project_Management_Server.services;
 
-import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectLeadDTO;
 import com.pm.Project_Management_Server.dto.UserDTO;
-import com.pm.Project_Management_Server.entity.ContactPerson;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.ProjectLead;
 import com.pm.Project_Management_Server.entity.Users;
@@ -54,16 +52,18 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
     }
 
     @Override
-    public ProjectLeadDTO getByProjectId(Long projectId) {
+    public UserDTO getUserByProjectId(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
         ProjectLead lead = project.getProjectLead();
-        if (lead == null) {
-            throw new RuntimeException("No lead assigned to this project");
+        if (lead == null || lead.getUser() == null) {
+            throw new RuntimeException("No project lead or user assigned for this project");
         }
 
-        return toDTO(lead);
+        Users user = lead.getUser();
+
+        return new UserDTO(user.getId(), user.getUserName(), user.getEmail(),user.getUserType().name());
     }
 
 

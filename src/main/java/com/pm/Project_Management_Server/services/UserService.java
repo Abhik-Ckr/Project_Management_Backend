@@ -10,4 +10,5 @@ public interface UserService {
     List<UserDTO> getAllUsers();
     List<UserDTO> getUsersByType(String userType);
     boolean deleteUser(Long id);
+
 }
