@@ -30,10 +30,10 @@ public class ClientService {
     public List<ClientDTO> getAllClients() {
         return clientRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
-    public ClientDTO getClientByProjectId(Long projectId) {
-        return projectRepository.findClientById(projectId)
-                .map(this::toDTO)
-                .orElseThrow(() -> new RuntimeException("Client not found for given project ID"));
+
+    public Optional<ClientDTO> getClientByProjectId(Long projectId) {
+        return projectRepository.findClientByProjectId(projectId)
+                .map(this::toDTO);
     }
 
 
