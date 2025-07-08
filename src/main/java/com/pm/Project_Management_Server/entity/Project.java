@@ -20,13 +20,11 @@ public class Project {
 
     @Enumerated(EnumType.STRING)
     private Status status;
-
     private Double budget;
 
     public enum Status {
         ACTIVE, COMPLETED, ON_HOLD
     }
-
     @ManyToOne
     @JoinColumn(name = "client_id")
     private Client client;

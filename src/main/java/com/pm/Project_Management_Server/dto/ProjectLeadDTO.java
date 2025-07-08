@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class ProjectLeadDTO {
     private Long id;
     private Long userId;
-
 }

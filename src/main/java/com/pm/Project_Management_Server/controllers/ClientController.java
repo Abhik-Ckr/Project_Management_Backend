@@ -22,7 +22,9 @@ public class ClientController {
 
     @GetMapping("/project/{projectId}")
     public ResponseEntity<ClientDTO> getClientByProjectId(@PathVariable Long projectId) {
-        return ResponseEntity.ok(clientService.getClientByProjectId(projectId));
+        return clientService.getClientByProjectId(projectId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}")

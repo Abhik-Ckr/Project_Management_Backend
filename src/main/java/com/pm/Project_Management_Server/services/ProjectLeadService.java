@@ -16,10 +16,10 @@ public interface ProjectLeadService {
 
     void removeProjectLead(Long id);
 
-    ProjectLeadDTO getByProjectId(Long projectId);
 
 
 
+    UserDTO getUserByProjectId(Long projectId);
 
     ProjectLeadDTO addProjectLead(ProjectLeadDTO projectLeadDTO);
 

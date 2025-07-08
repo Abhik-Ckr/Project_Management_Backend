@@ -10,7 +10,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class Client {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,6 +17,5 @@ public class Client {
     private String email;
     private LocalDate onBoardedOn;
     private Integer clientRating;
-
 
 }
