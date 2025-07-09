@@ -33,6 +33,16 @@ public class AuthService {
         return UserMapper.toDTO(userRepo.save(user));
     }
 
+    @Transactional
+    public void changePassword(String email, String newPassword) {
+        Users user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setPassword(encoder.encode(newPassword));
+        userRepo.save(user);
+    }
+
+
 
     //temporarily storing exceptions in the file!!!
     public String login(String email, String rawPwd) {
