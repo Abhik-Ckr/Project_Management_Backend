@@ -17,4 +17,6 @@ public interface ResourceService {
     List<ResourceDTO> getUnallocatedResources();
 
     ResourceDTO updateResource(Long id, ResourceDTO dto);
+
+    void deleteResource(Long id);
 }

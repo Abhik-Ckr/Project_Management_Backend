@@ -25,6 +25,21 @@ public class IssueController {
     public List<IssueDTO> getAllIssues() {
         return issueService.getAllIssues();
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<IssueDTO> updateIssue(
+            @PathVariable Long id,
+            @RequestBody IssueDTO dto) {
+        IssueDTO updated = issueService.updateIssue(id, dto);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteIssue(@PathVariable Long id) {
+        issueService.deleteIssue(id);
+        return ResponseEntity.ok("Issue deleted successfully");
+    }
+
+
 
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<IssueDTO>> getIssuesByProject(
