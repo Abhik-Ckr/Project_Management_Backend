@@ -4,6 +4,7 @@ import com.pm.Project_Management_Server.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -38,7 +39,27 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()
+
+                        .requestMatchers(HttpMethod.POST,   "/api/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/**")
+                        .hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated()
+
+                )
+                .exceptionHandling(eh -> eh
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(418); //sample status code -> not for prod!!!!, need to edit
+                            response.setContentType("application/json");
+                            response.getWriter().write("""
+                    {
+                      "message": "Forbidden – You don't have the required role",
+                      "debug": "Valid JWT but not enough privileges"
+                    }
+                """);
+                        })
                 )
                 .sessionManagement(sess -> sess
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
