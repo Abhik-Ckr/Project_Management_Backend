@@ -72,14 +72,14 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<ProjectDTO> getProjectsOverBudget() {
         return projectRepository.findAll().stream()
-                .filter(project -> {
-                    double spent = calculateBudgetSpent(project);
-                    double budget = project.getBudget() != null ? project.getBudget() : 0.0;
-                    return spent > budget;
-                })
+                .filter(project ->
+                        (project.getStatus() == Project.Status.ACTIVE || project.getStatus() == Project.Status.ON_HOLD)
+                                && calculateBudgetSpent(project) > (project.getBudget() != null ? project.getBudget() : 0.0)
+                )
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public long countProjectsOverBudget() {
