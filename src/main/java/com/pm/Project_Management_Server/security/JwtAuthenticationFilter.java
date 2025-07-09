@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -58,10 +59,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+//    @Override
+//    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+//        String path = request.getServletPath();
+//        return path.startsWith("/api/auth");
+//    }
+private static final Set<String> PUBLIC = Set.of(
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/auth/logout"
+);
+
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        String path = request.getServletPath();
-        return path.startsWith("/api/auth");
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return PUBLIC.contains(request.getServletPath());
     }
+
 
 }

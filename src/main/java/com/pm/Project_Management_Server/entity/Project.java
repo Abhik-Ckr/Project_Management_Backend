@@ -34,10 +34,10 @@ public class Project {
 //    private ContactPerson contactPerson;
 
     @OneToOne
-    @JoinColumn(name = "project_lead_id",nullable = true)
+    @JoinColumn(name = "project_lead_id")
     private ProjectLead projectLead;
 
     @OneToOne
-    @JoinColumn(name = "project_rate_card_id",nullable = true)
+    @JoinColumn(name = "project_rate_card_id")
     private ProjectRateCard projectRateCard;
 }
