@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class IssueServiceImpl implements IssueService{
+public class    IssueServiceImpl implements IssueService{
     private final IssueRepository issueRepository;
     private final ProjectRepository projectRepository;
 
