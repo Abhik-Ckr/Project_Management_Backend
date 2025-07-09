@@ -27,16 +27,18 @@ public class HighlightServiceImpl implements HighlightService{
         
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found with id: " + dto.getProjectId()));
-        
+
         LocalDate today = LocalDate.now();
-        boolean exists = highlightRepository.findByProjectId(project.getId())
-                .stream()
-                .anyMatch(h -> h.getCreatedOn().equals(today));
-        
-        if (exists) {
-            throw new RuntimeException("A highlight already exists for this project on " + today);
-        }
-        
+        // COMMENTED OUT FOR ALLOWING MULTIPLE HIGHLIGHTS!
+//        boolean exists = highlightRepository.findByProjectId(project.getId())
+//                .stream()
+//                .anyMatch(h -> h.getCreatedOn().equals(today));
+//
+//        if (exists) {
+//            throw new RuntimeException("A highlight already exists for this project on " + today);
+//        }
+
+
         Highlight highlight = new Highlight();
         highlight.setProject(project);
         highlight.setDescription(dto.getDescription());
