@@ -68,11 +68,22 @@ public class RateCardServiceImpl implements RateCardService {
 
     @Override
     public List<ProjectRateCardDTO> getProjectRates(Long projectId) {
-        return projectRateCardRepository.findAll().stream()
-                .filter(rateCard -> rateCard.getProject() != null && rateCard.getProject().getId().equals(projectId))
+        List<ProjectRateCard> projectRateCards = projectRateCardRepository.findByProjectId(projectId);
+
+        if (!projectRateCards.isEmpty()) {
+            return projectRateCards.stream()
+                    .map(this::toProjectDTO)
+                    .collect(Collectors.toList());
+        }
+
+        // Fallback: fetch global rate cards
+        List<GlobalRateCard> globalRateCards = globalRateCardRepository.findAll();
+
+        return globalRateCards.stream()
                 .map(this::toProjectDTO)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     public ProjectRateCardDTO overrideRate(Long projectId, String level, Double rate) {
@@ -142,4 +153,15 @@ public class RateCardServiceImpl implements RateCardService {
         dto.setLastUpdated(projectRateCard.getLastUpdated());
         return dto;
     }
+    private ProjectRateCardDTO toProjectDTO(GlobalRateCard globalCard) {
+        return ProjectRateCardDTO.builder()
+                .id(globalCard.getId())
+                .projectId(null)  // clearly indicates global fallback
+                .level(globalCard.getLevel())
+                .rate(globalCard.getRate())
+                .active(true) // or false if you want to mark differently
+                .lastUpdated(null) // since global might not have this
+                .build();
+    }
+
 }

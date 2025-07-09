@@ -87,6 +87,15 @@ public class ResourceServiceImpl implements ResourceService {
         return convertToDTO(updated);
     }
 
+    @Override
+    public void deleteResource(Long id) {
+        if (!resourceRepository.existsById(id)) {
+            throw new RuntimeException("Resource not found");
+        }
+        resourceRepository.deleteById(id);
+    }
+
+
     private ResourceDTO convertToDTO(Resource resource) {
         ResourceDTO dto = new ResourceDTO();
         BeanUtils.copyProperties(resource, dto);

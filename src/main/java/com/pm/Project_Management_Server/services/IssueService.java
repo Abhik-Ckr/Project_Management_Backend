@@ -17,4 +17,8 @@ public interface IssueService {
     IssueDTO closeIssue(Long id);
 
     List<IssueDTO> getAllIssues();
+
+    IssueDTO updateIssue(Long id, IssueDTO dto);
+
+    void deleteIssue(Long id);
 }
