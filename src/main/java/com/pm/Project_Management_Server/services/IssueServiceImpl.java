@@ -69,6 +69,45 @@ public class IssueServiceImpl implements IssueService{
         return issues.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
+    @Override
+    public IssueDTO updateIssue(Long id, IssueDTO dto) {
+        Issue issue = issueRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Issue not found"));
+
+        if (dto.getSeverity() != null) {
+            issue.setSeverity(Issue.Severity.valueOf(dto.getSeverity().toUpperCase()));
+        }
+
+        if (dto.getDescription() != null) {
+            issue.setDescription(dto.getDescription());
+        }
+
+        if (dto.getStatus() != null) {
+            issue.setStatus(Issue.IssueStatus.valueOf(dto.getStatus().toUpperCase()));
+        }
+
+        if (dto.getCreatedBy() != null) {
+            issue.setCreatedBy(dto.getCreatedBy());
+        }
+
+        issue.setUpdatedDate(LocalDate.now()); // Optional if you use @PreUpdate
+
+        Issue saved = issueRepository.save(issue);
+
+        return convertToDTO(saved);
+    }
+
+
+    @Override
+    public void deleteIssue(Long id) {
+        if (!issueRepository.existsById(id)) {
+            throw new RuntimeException("Issue not found");
+        }
+        issueRepository.deleteById(id);
+    }
+
+
+
     private IssueDTO convertToDTO(Issue issue) {
         IssueDTO dto = new IssueDTO();
         dto.setId(issue.getId());

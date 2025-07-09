@@ -69,6 +69,23 @@ public class HighlightServiceImpl implements HighlightService{
         return highlights.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
+    @Override
+    public HighlightDTO updateHighlight(Long id, HighlightDTO dto) {
+        Highlight highlight = highlightRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Highlight not found"));
+
+        Project project = projectRepository.findById(dto.getProjectId())
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        highlight.setDescription(dto.getDescription());
+        highlight.setCreatedOn(dto.getCreatedOn());
+        highlight.setProject(project);
+
+        Highlight saved = highlightRepository.save(highlight);
+        return convertToDTO(saved); // Ensure you have this mapping logic
+    }
+
+
     private HighlightDTO convertToDTO(Highlight highlight) {
         HighlightDTO dto = new HighlightDTO();
         dto.setId(highlight.getId());
