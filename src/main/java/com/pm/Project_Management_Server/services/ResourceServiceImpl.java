@@ -88,6 +88,15 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     @Override
+    public List<ResourceDTO> getResourcesByClientId(Long clientId) {
+        List<Resource> resources = resourceRepository.findByProject_Client_Id(clientId);
+        return resources.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
     public void deleteResource(Long id) {
         if (!resourceRepository.existsById(id)) {
             throw new RuntimeException("Resource not found");
