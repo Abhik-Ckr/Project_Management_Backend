@@ -1,5 +1,8 @@
 package com.pm.Project_Management_Server.services;
 
+import com.pm.Project_Management_Server.exceptions.InvalidIssueSeverityException;
+import com.pm.Project_Management_Server.exceptions.IssueNotFoundException;
+import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
 import com.pm.Project_Management_Server.repositories.IssueRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.dto.CreateIssueDTO;
@@ -23,11 +26,18 @@ public class IssueServiceImpl implements IssueService{
     @Override
     public IssueDTO createIssue(CreateIssueDTO dto) {
         Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found with id: " + dto.getProjectId()));
-        
+                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
+
+        Issue.Severity severity;
+        try {
+            severity = Issue.Severity.valueOf(dto.getSeverity().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new InvalidIssueSeverityException(dto.getSeverity());
+        }
+
         Issue issue = new Issue();
         issue.setProject(project);
-        issue.setSeverity(Issue.Severity.valueOf(dto.getSeverity().toUpperCase()));
+        issue.setSeverity(severity);
         issue.setDescription(dto.getDescription());
         issue.setCreatedBy(dto.getCreatedBy());
         issue.setCreatedDate(LocalDate.now());
@@ -56,7 +66,7 @@ public class IssueServiceImpl implements IssueService{
     @Override
     public IssueDTO closeIssue(Long id) {
         Issue issue = issueRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Issue not found with id: " + id));
+                .orElseThrow(() -> new IssueNotFoundException(id));
         
         issue.setStatus(Issue.IssueStatus.CLOSED);
         Issue saved = issueRepository.save(issue);
@@ -72,10 +82,14 @@ public class IssueServiceImpl implements IssueService{
     @Override
     public IssueDTO updateIssue(Long id, IssueDTO dto) {
         Issue issue = issueRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Issue not found"));
+                .orElseThrow(() -> new IssueNotFoundException(id));
 
         if (dto.getSeverity() != null) {
-            issue.setSeverity(Issue.Severity.valueOf(dto.getSeverity().toUpperCase()));
+            try {
+                issue.setSeverity(Issue.Severity.valueOf(dto.getSeverity().toUpperCase()));
+            } catch (IllegalArgumentException ex) {
+                throw new InvalidIssueSeverityException(dto.getSeverity());
+            }
         }
 
         if (dto.getDescription() != null) {
@@ -101,7 +115,7 @@ public class IssueServiceImpl implements IssueService{
     @Override
     public void deleteIssue(Long id) {
         if (!issueRepository.existsById(id)) {
-            throw new RuntimeException("Issue not found");
+            throw new IssueNotFoundException(id);
         }
         issueRepository.deleteById(id);
     }

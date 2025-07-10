@@ -66,6 +66,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
+    @ExceptionHandler(IssueNotFoundException.class)
+    public ResponseEntity<String> handleIssueNotFound(IssueNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidIssueSeverityException.class)
+    public ResponseEntity<String> handleInvalidSeverity(InvalidIssueSeverityException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+
 
 
 }
