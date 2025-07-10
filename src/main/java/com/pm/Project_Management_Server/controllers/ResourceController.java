@@ -31,6 +31,12 @@ public class ResourceController {
         return ResponseEntity.ok(resourceService.getResourcesByProject(projectId));
     }
 
+    @GetMapping("/client/{clientId}")
+    public ResponseEntity<List<ResourceDTO>> getResourcesByClient(@PathVariable Long clientId) {
+        List<ResourceDTO> resources = resourceService.getResourcesByClientId(clientId);
+        return ResponseEntity.ok(resources);
+    }
+
     @GetMapping("/level/{level}")
     public ResponseEntity<List<ResourceDTO>> getResourcesByLevel(@PathVariable String level) {
         return ResponseEntity.ok(resourceService.getResourcesByLevel(level));
