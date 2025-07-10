@@ -50,4 +50,10 @@ public class ResourceController {
     public ResponseEntity<ResourceDTO> updateResource(@PathVariable Long id, @RequestBody ResourceDTO dto) {
         return ResponseEntity.ok(resourceService.updateResource(id, dto));
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteResource(@PathVariable Long id) {
+        resourceService.deleteResource(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

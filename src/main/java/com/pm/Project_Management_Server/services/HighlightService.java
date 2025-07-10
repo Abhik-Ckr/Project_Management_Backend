@@ -11,4 +11,6 @@ public interface HighlightService {
     void deleteHighlight(Long id);
 
     List<HighlightDTO> getAllHighlights();
+
+    HighlightDTO updateHighlight(Long id, HighlightDTO dto);
 }
