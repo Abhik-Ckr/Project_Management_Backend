@@ -2,6 +2,10 @@ package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.*;
 import com.pm.Project_Management_Server.entity.*;
+import com.pm.Project_Management_Server.exceptions.BadCredentialsException;
+import com.pm.Project_Management_Server.exceptions.EmailAlreadyExistsException;
+import com.pm.Project_Management_Server.exceptions.UserNotFoundException;
+import com.pm.Project_Management_Server.exceptions.UsernameAlreadyExistsException;
 import com.pm.Project_Management_Server.mapper.UserMapper;
 import com.pm.Project_Management_Server.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -19,10 +23,11 @@ public class AuthService {
 
     @Transactional
     public UserDTO register(UserCreateDTO dto) {
-        if (userRepo.existsByUserName(dto.getUserName()))
-            throw new IllegalStateException("username already taken");
+        // no field for name, hence username shouldn't be unique
+//        if (userRepo.existsByUserName(dto.getUserName()))
+//            throw new UsernameAlreadyExistsException("Username already taken");
         if (userRepo.existsByEmail(dto.getEmail()))
-            throw new IllegalStateException("email already taken");
+            throw new EmailAlreadyExistsException("Email already taken");
 
         Users user = new Users();
         user.setUserName(dto.getUserName());
@@ -36,7 +41,7 @@ public class AuthService {
     @Transactional
     public void changePassword(String email, String newPassword) {
         Users user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         user.setPassword(encoder.encode(newPassword));
         userRepo.save(user);
@@ -47,9 +52,9 @@ public class AuthService {
     //temporarily storing exceptions in the file!!!
     public String login(String email, String rawPwd) {
         Users user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("bad credentials"));
+                .orElseThrow(BadCredentialsException::new);
         if (!encoder.matches(rawPwd, user.getPassword()))
-            throw new IllegalArgumentException("bad credentials");
+            throw new BadCredentialsException();
 
         return jwtService.generateToken(user.getEmail());
     }
