@@ -85,6 +85,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleInvalidLevel(InvalidResourceLevelException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+    @ExceptionHandler(ProjectLeadNotFoundException.class)
+    public ResponseEntity<String> handleProjectLeadNotFound(ProjectLeadNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+
+    @ExceptionHandler(NoLeadAssignedException.class)
+    public ResponseEntity<String> handleNoLeadAssigned(NoLeadAssignedException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
 
 
 
