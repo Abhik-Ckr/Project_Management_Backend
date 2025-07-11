@@ -16,7 +16,6 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-src/test/java/com/pm/Project_Management_Server/test/**
 
 ### IntelliJ IDEA ###
 .idea
