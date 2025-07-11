@@ -5,6 +5,7 @@ import com.pm.Project_Management_Server.dto.ProjectDTO;
 import com.pm.Project_Management_Server.dto.SearchResultDTO;
 import com.pm.Project_Management_Server.entity.Client;
 import com.pm.Project_Management_Server.entity.Project;
+import com.pm.Project_Management_Server.exceptions.NoSearchResultsFoundException;
 import com.pm.Project_Management_Server.repositories.ClientRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +23,15 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public SearchResultDTO globalSearch(String keyword) {
-        List<ProjectDTO> projects;
-        projects = projectRepository.findByProjectNameContainingIgnoreCase(keyword)
+        List<ProjectDTO> projects = projectRepository.findByProjectNameContainingIgnoreCase(keyword)
                 .stream().map(this::mapProjectToDTO).collect(Collectors.toList());
 
         List<ClientDTO> clients = clientRepository.findByNameContainingIgnoreCase(keyword)
                 .stream().map(this::mapClientToDTO).collect(Collectors.toList());
+
+        if (projects.isEmpty() && clients.isEmpty()) {
+            throw new NoSearchResultsFoundException(keyword);
+        }
 
         return new SearchResultDTO(projects, clients);
     }

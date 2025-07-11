@@ -116,6 +116,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
+    @ExceptionHandler(NoSearchResultsFoundException.class)
+    public ResponseEntity<String> handleNoResultsFound(NoSearchResultsFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidUserTypeException.class)
+    public ResponseEntity<String> handleInvalidUserType(InvalidUserTypeException ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
 
 
 

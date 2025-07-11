@@ -3,6 +3,8 @@ package com.pm.Project_Management_Server.services;
 import com.pm.Project_Management_Server.dto.UserDTO;
 import com.pm.Project_Management_Server.entity.Users;
 import com.pm.Project_Management_Server.entity.UserType;
+import com.pm.Project_Management_Server.exceptions.InvalidUserTypeException;
+import com.pm.Project_Management_Server.exceptions.UserNotFoundException;
 import com.pm.Project_Management_Server.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,8 +21,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<UserDTO> getUserById(Long id) {
-        return userRepo.findById(id)
+        return Optional.ofNullable(userRepo.findById(id)
+                        .orElseThrow(() -> new UserNotFoundException(id)))
                 .map(this::mapToDTO);
+
     }
 
     @Override
@@ -33,7 +37,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDTO> getUsersByType(String userType) {
-        UserType type = UserType.valueOf(userType.toUpperCase());
+        UserType type;
+        try {
+            type = UserType.valueOf(userType.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidUserTypeException(userType);
+        }
+
         return userRepo.findByUserType(type)
                 .stream()
                 .map(this::mapToDTO)
