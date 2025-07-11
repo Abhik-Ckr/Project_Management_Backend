@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.services;
 
+import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
 import com.pm.Project_Management_Server.repositories.GlobalRateCardRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRateCardRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
@@ -33,7 +34,7 @@ public class RateCardServiceImpl implements RateCardService {
     public ProjectRateCardDTO addRateCard(ProjectRateCardDTO request) {
         // 1. Fetch project
         Project project = projectRepository.findById(request.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + request.getProjectId()));
+                .orElseThrow(() -> new ProjectNotFoundException(request.getProjectId()));
 
         // 2. Create ProjectRateCard entity
         ProjectRateCard rateCard = new ProjectRateCard();
@@ -88,7 +89,7 @@ public class RateCardServiceImpl implements RateCardService {
     @Override
     public ProjectRateCardDTO overrideRate(Long projectId, String level, Double rate) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found with id: " + projectId));
+                .orElseThrow(() -> new ProjectNotFoundException(projectId));
         
         ResourceLevel lvl;
         try {
@@ -119,7 +120,7 @@ public class RateCardServiceImpl implements RateCardService {
     @Override
     public void initializeProjectRatesFromGlobal(Long projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found with id: " + projectId));
+                .orElseThrow(() -> new ProjectNotFoundException(projectId));
         
         List<GlobalRateCard> globalRates = globalRateCardRepository.findAll();
         for (GlobalRateCard grc : globalRates) {
