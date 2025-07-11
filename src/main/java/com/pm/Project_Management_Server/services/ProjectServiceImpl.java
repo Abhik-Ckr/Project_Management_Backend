@@ -3,6 +3,7 @@ package com.pm.Project_Management_Server.services;
 import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectDTO;
 import com.pm.Project_Management_Server.entity.*;
+import com.pm.Project_Management_Server.exceptions.*;
 import com.pm.Project_Management_Server.repositories.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -90,7 +91,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDTO getProjectById(Long id) {
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
+                .orElseThrow(() -> new ProjectNotFoundException(id));
         return mapToDTO(project);
     }
 
@@ -110,21 +111,21 @@ public class ProjectServiceImpl implements ProjectService {
             project.setBudget(dto.getBudget() != null ? dto.getBudget() : null);
             if (dto.getClientId() != null) {
                 project.setClient(clientRepo.findById(dto.getClientId())
-                        .orElseThrow(() -> new RuntimeException("Client not found")));
+                        .orElseThrow(() -> new ClientNotFoundException(dto.getClientId())));
             }
 
             if (dto.getProjectLeadId() != null) {
                 project.setProjectLead(leadRepo.findById(dto.getProjectLeadId())
-                        .orElseThrow(() -> new RuntimeException("Project lead not found")));
+                        .orElseThrow(() -> new ProjectLeadNotFoundException(dto.getProjectLeadId())));
             }
 
             if (dto.getProjectRateCardId() != null) {
                 project.setProjectRateCard(rateCardRepo.findById(dto.getProjectRateCardId())
-                        .orElseThrow(() -> new RuntimeException("Rate card not found")));
+                        .orElseThrow(() -> new RateCardNotFoundException(dto.getProjectRateCardId())));
             }
 
             return mapToDTO(projectRepository.save(project));
-        }).orElseThrow(() -> new RuntimeException("Project not found"));
+        }).orElseThrow(() -> new ProjectNotFoundException(id));
     }
 
     @Override
@@ -136,7 +137,7 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectDTO getProjectByLeadId(Long leadId) {
         return projectRepository.findByProjectLeadId(leadId)
                 .map(this::mapToDTO)
-                .orElseThrow(() -> new RuntimeException("No project found for this lead"));
+                .orElseThrow(() -> new ProjectForLeadNotFoundException(leadId));
     }
 
     @Override
@@ -155,7 +156,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private Project getProjectEntity(Long id) {
         return projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ProjectNotFoundException(id));
     }
     @Override
     public Double calculateBudgetSpentById(Long projectId) {
@@ -181,7 +182,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ContactPersonDTO getContactPersonByProjectId(Long projectId) {
         ContactPerson person = contactPersonRepo.findByProjectId(projectId)
-                .orElseThrow(() -> new RuntimeException("No contact person found for project ID: " + projectId));
+                .orElseThrow(() -> new ContactPersonNotFoundException(projectId));
         return new ContactPersonDTO(
                 person.getId(),
                 person.getName(),
@@ -204,19 +205,19 @@ public class ProjectServiceImpl implements ProjectService {
 
         if (dto.getClientId() != null) {
             Client client = clientRepo.findById(dto.getClientId())
-                    .orElseThrow(() -> new RuntimeException("Client not found"));
+                    .orElseThrow(() -> new ClientNotFoundException(dto.getClientId()));
             builder.client(client);
         }
 
         if (dto.getProjectLeadId() != null) {
             ProjectLead projectLead = leadRepo.findById(dto.getProjectLeadId())
-                    .orElseThrow(() -> new RuntimeException("Project Lead not found"));
+                    .orElseThrow(() -> new ProjectLeadNotFoundException(dto.getProjectLeadId()));
             builder.projectLead(projectLead);
         }
 
         if (dto.getProjectRateCardId() != null) {
             ProjectRateCard rateCard = projectRateCardRepository.findById(dto.getProjectRateCardId())
-                    .orElseThrow(() -> new RuntimeException("Project Rate Card not found"));
+                    .orElseThrow(() -> new RateCardNotFoundException(dto.getProjectRateCardId()));
             builder.projectRateCard(rateCard);
         }
 
