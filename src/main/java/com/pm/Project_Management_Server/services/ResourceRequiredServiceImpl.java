@@ -3,6 +3,8 @@ package com.pm.Project_Management_Server.services;
 import com.pm.Project_Management_Server.dto.ResourceRequiredDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.ResourceRequired;
+import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
+import com.pm.Project_Management_Server.exceptions.RequirementNotFoundException;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.repositories.ResourceRequiredRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ public class ResourceRequiredServiceImpl implements ResourceRequiredService {
     @Override
     public ResourceRequiredDTO addRequirement(ResourceRequiredDTO dto) {
         Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
 
         ResourceRequired requirement = new ResourceRequired();
         requirement.setProject(project);
@@ -46,7 +48,7 @@ public class ResourceRequiredServiceImpl implements ResourceRequiredService {
     @Override
     public ResourceRequiredDTO updateRequirement(Long id, ResourceRequiredDTO dto) {
         ResourceRequired existing = resourceRequiredRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Requirement not found"));
+                .orElseThrow(() -> new RequirementNotFoundException((id)));
 
         existing.setResourceLevel(dto.getLevel());
         existing.setQuantity(dto.getQuantity());
@@ -58,7 +60,7 @@ public class ResourceRequiredServiceImpl implements ResourceRequiredService {
     @Override
     public void deleteRequirement(Long id) {
         if (!resourceRequiredRepository.existsById(id)) {
-            throw new RuntimeException("Requirement not found");
+            throw new RequirementNotFoundException(id);
         }
         resourceRequiredRepository.deleteById(id);
     }
