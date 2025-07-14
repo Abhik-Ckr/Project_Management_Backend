@@ -3,6 +3,8 @@ package com.pm.Project_Management_Server.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -15,8 +17,11 @@ public class Project {
     private Long id;
 
     private String projectName;
-    private String type;
+    private ProjectType type;
     private String department;
+    //added new
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
     private Status status;
@@ -40,4 +45,9 @@ public class Project {
     @OneToOne
     @JoinColumn(name = "project_rate_card_id")
     private ProjectRateCard projectRateCard;
+
+    public enum ProjectType {
+        TNM, // Time and Material
+        TFR  // Transfer
+    }
 }
