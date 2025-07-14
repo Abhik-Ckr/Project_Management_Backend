@@ -34,6 +34,8 @@ public class ResourceServiceImpl implements ResourceService {
         ResourceDTO response = new ResourceDTO();
         BeanUtils.copyProperties(saved, response);
         response.setProjectId(project.getId());
+        response.setActualEndDate(saved.getActualEndDate());
+        response.setExited(saved.isExited());
         return response;
     }
 
@@ -90,6 +92,8 @@ public class ResourceServiceImpl implements ResourceService {
         Resource resource = resourceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Resource not found"));
         BeanUtils.copyProperties(dto, resource, "id", "project");
+        resource.setActualEndDate(dto.getActualEndDate());
+        resource.setExited(dto.isExited());
         Resource updated = resourceRepository.save(resource);
         return convertToDTO(updated);
     }
@@ -120,6 +124,8 @@ public class ResourceServiceImpl implements ResourceService {
                 .startDate(resource.getStartDate())
                 .endDate(resource.getEndDate())
                 .allocated(resource.isAllocated())
+                .actualEndDate(resource.getActualEndDate())
+                .exited(resource.isExited())
                 .projectId(resource.getProject() != null ? resource.getProject().getId() : null)
                 .build();
     }

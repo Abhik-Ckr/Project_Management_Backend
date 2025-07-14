@@ -44,6 +44,8 @@ class ResourceServiceTest {
         dto.setLevel(ResourceLevel.JR);
         dto.setStartDate(LocalDate.now());
         dto.setAllocated(true);
+        dto.setActualEndDate(LocalDate.now().plusDays(10));
+        dto.setExited(false);
 
         when(projectRepo.findById(1L)).thenReturn(Optional.of(project));
         when(resourceRepo.save(any())).thenAnswer(inv -> {
@@ -55,8 +57,8 @@ class ResourceServiceTest {
         ResourceDTO result = service.addResource(dto);
         assertNotNull(result.getId());
         assertEquals(1L, result.getProjectId());
+        assertFalse(result.isExited());
     }
-
 
     @Test
     void testGetAllResources() {
@@ -123,6 +125,8 @@ class ResourceServiceTest {
         dto.setLevel(ResourceLevel.SR);
         dto.setStartDate(LocalDate.now());
         dto.setAllocated(false);
+        dto.setActualEndDate(LocalDate.now().plusDays(20));
+        dto.setExited(true);
         dto.setProjectId(1L);
 
         when(resourceRepo.findById(1L)).thenReturn(Optional.of(existing));
@@ -130,8 +134,8 @@ class ResourceServiceTest {
 
         ResourceDTO result = service.updateResource(1L, dto);
         assertEquals("Dev", result.getResourceName());
+        assertTrue(result.isExited());
     }
-
 
     @Test
     void testUpdateResource_NotFound() {
@@ -157,7 +161,6 @@ class ResourceServiceTest {
         List<ResourceDTO> result = service.getResourcesByClientId(22L);
         assertEquals(1, result.size());
     }
-
 
     @Test
     void testDeleteResource_Success() {

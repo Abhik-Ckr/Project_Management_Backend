@@ -28,6 +28,10 @@ public class Resource {
 
     private boolean allocated;
 
+    private LocalDate actualEndDate;
+    private boolean exited=false;
+
+
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;

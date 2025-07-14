@@ -21,6 +21,7 @@ public class ResourceDTO {
     private LocalDate endDate;
     private boolean allocated;
     private Long projectId;  // Nullable — since resource may not be assigned to a project
-
+    private LocalDate actualEndDate;
+    private boolean exited;
 
 }

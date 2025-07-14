@@ -17,6 +17,7 @@ public class Project {
     private Long id;
 
     private String projectName;
+    @Enumerated(EnumType.STRING)
     private ProjectType type;
     private String department;
     //added new
