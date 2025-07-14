@@ -2,6 +2,7 @@ package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectDTO;
+import com.pm.Project_Management_Server.dto.ResourceDeficitDTO;
 import com.pm.Project_Management_Server.entity.*;
 import com.pm.Project_Management_Server.exceptions.*;
 import com.pm.Project_Management_Server.repositories.*;
@@ -10,7 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,8 +31,105 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectLeadRepository leadRepo;
     private final ClientRepository clientRepo;
     private final ContactPersonRepository contactPersonRepo;
+    private final ResourceRequiredRepository resourceRequiredRepo;
 
     // ---------- CRUD Operations using DTO ----------
+
+    @Override
+    public List<ResourceDeficitDTO> getResourceDeficitReport(Long projectId) {
+        // 1. Fetch required resources
+        List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
+
+        // 2. Fetch allocated resources
+        List<Resource> allocatedResources = resourceRepo.findByProjectId(projectId);
+
+        // 3. Count actual allocations per level
+        Map<ResourceLevel, Long> actualMap = allocatedResources.stream()
+                .collect(Collectors.groupingBy(Resource::getLevel, Collectors.counting()));
+
+        List<ResourceDeficitDTO> report = new ArrayList<>();
+
+        for (ResourceRequired req : requiredList) {
+            ResourceLevel level = req.getResourceLevel();
+            int requiredQty = req.getQuantity();
+            long actualQty = actualMap.getOrDefault(level, 0L);
+
+            if (actualQty < requiredQty) {
+                report.add(new ResourceDeficitDTO(level, "DEFICIT", requiredQty - (int) actualQty));
+            } else if (actualQty > requiredQty) {
+                report.add(new ResourceDeficitDTO(level, "EXCESS", (int) actualQty - requiredQty));
+            }
+        }
+
+        return report;
+    }
+
+    @Override
+    public int getTotalResourceDeficitCount(Long projectId) {
+        List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
+        List<Resource> allocatedResources = resourceRepo.findByProjectId(projectId);
+
+        Map<ResourceLevel, Long> actualMap = allocatedResources.stream()
+                .collect(Collectors.groupingBy(Resource::getLevel, Collectors.counting()));
+
+        int totalDeficit = 0;
+
+        for (ResourceRequired req : requiredList) {
+            int requiredQty = req.getQuantity();
+            long actualQty = actualMap.getOrDefault(req.getResourceLevel(), 0L);
+
+            if (actualQty < requiredQty) {
+                totalDeficit += (int) (requiredQty - actualQty);
+            }
+        }
+        return totalDeficit;
+    }
+    @Override
+    public int getTotalResourcesRequired(Long projectId) {
+        List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
+        return requiredList.stream()
+                .mapToInt(ResourceRequired::getQuantity)
+                .sum();
+    }
+
+    @Override
+    public double estimateCompletionCost(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        List<Resource> resources = resourceRepo.findByProjectId(projectId);
+        List<ProjectRateCard> rateCards = projectRateCardRepository.findByProjectId(projectId);
+
+        LocalDate projectEnd = project.getEndDate();
+        double totalCost = 0.0;
+
+        for (Resource resource : resources) {
+            LocalDate resStart = resource.getStartDate();
+            LocalDate resEnd = resource.getEndDate() != null ? resource.getEndDate() : projectEnd;
+
+            // Fetch rate cards for the resource's level and overlapping dates
+            List<ProjectRateCard> applicableCards = rateCards.stream()
+                    .filter(card -> card.getLevel() == resource.getLevel())
+                    .filter(card -> !(card.getEndDate().isBefore(resStart) || card.getStartDate().isAfter(resEnd)))
+                    .toList();
+
+            for (ProjectRateCard card : applicableCards) {
+                LocalDate overlapStart = resStart.isAfter(card.getStartDate()) ? resStart : card.getStartDate();
+                LocalDate overlapEnd = resEnd.isBefore(card.getEndDate()) ? resEnd : card.getEndDate();
+
+                long workingDays = ChronoUnit.DAYS.between(overlapStart, overlapEnd.plusDays(1));
+                if (workingDays > 0) {
+                    totalCost += workingDays * card.getRate(); // No division, rate is already per day
+                }
+            }
+        }
+
+        return Math.round(totalCost * 100.0) / 100.0;
+    }
+
+
+
+
 
     @Override
     public List<ProjectDTO> getAllProjects() {
@@ -38,36 +139,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 
-    @Override
-    public double calculateBudgetSpent(Project project) {
-        List<Resource> resources = resourceRepo.findByProjectId(project.getId());
-        double totalSpent = 0.0;
 
-        for (Resource resource : resources) {
-            if (resource.getStartDate() != null) {
-                // Use endDate if available, otherwise use today's date
-                LocalDate endDate = (resource.getEndDate() != null)
-                        ? resource.getEndDate()
-                        : LocalDate.now();
-
-                long days = java.time.temporal.ChronoUnit.DAYS.between(
-                        resource.getStartDate(), endDate);
-
-                double rate = projectRateCardRepository
-                        .findByProjectIdAndLevel(project.getId(), resource.getLevel())
-                        .filter(ProjectRateCard::getActive)
-                        .map(ProjectRateCard::getRate)
-                        .orElseGet(() -> globalRateCardRepository
-                                .findByLevel(resource.getLevel())
-                                .map(GlobalRateCard::getRate)
-                                .orElse(0.0));
-
-                totalSpent += days * rate;
-            }
-        }
-
-        return totalSpent;
-    }
 
 
     @Override
@@ -79,6 +151,11 @@ public class ProjectServiceImpl implements ProjectService {
                 )
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Double calculateBudgetSpentById(Project project) {
+        return 0.0;
     }
 
 
@@ -95,6 +172,9 @@ public class ProjectServiceImpl implements ProjectService {
         return mapToDTO(project);
     }
 
+
+
+
     @Override
     public ProjectDTO createProject(ProjectDTO dto) {
         Project project = mapToEntity(dto);
@@ -104,11 +184,27 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDTO updateProject(Long id, ProjectDTO dto) {
         return projectRepository.findById(id).map(project -> {
-            project.setProjectName(dto.getProjectName());
-            project.setDepartment(dto.getDepartment());
-            project.setType(dto.getType());
-            project.setStatus(Project.Status.valueOf(dto.getStatus()));
-            project.setBudget(dto.getBudget() != null ? dto.getBudget() : null);
+
+            if (dto.getProjectName() != null) {
+                project.setProjectName(dto.getProjectName());
+            }
+
+            if (dto.getDepartment() != null) {
+                project.setDepartment(dto.getDepartment());
+            }
+
+            if (dto.getType() != null) {
+                project.setType(dto.getType());
+            }
+
+            if (dto.getStatus() != null) {
+                project.setStatus(Project.Status.valueOf(dto.getStatus()));
+            }
+
+            if (dto.getBudget() != null) {
+                project.setBudget(dto.getBudget());
+            }
+
             if (dto.getClientId() != null) {
                 project.setClient(clientRepo.findById(dto.getClientId())
                         .orElseThrow(() -> new ClientNotFoundException(dto.getClientId())));
@@ -124,7 +220,9 @@ public class ProjectServiceImpl implements ProjectService {
                         .orElseThrow(() -> new RateCardNotFoundException(dto.getProjectRateCardId())));
             }
 
-            return mapToDTO(projectRepository.save(project));
+            Project updated = projectRepository.save(project);
+            return mapToDTO(updated);
+
         }).orElseThrow(() -> new ProjectNotFoundException(id));
     }
 
@@ -154,30 +252,68 @@ public class ProjectServiceImpl implements ProjectService {
                 .collect(Collectors.toList());
     }
 
-    private Project getProjectEntity(Long id) {
-        return projectRepository.findById(id)
-                .orElseThrow(() -> new ProjectNotFoundException(id));
+    @Override
+    public Double calculateBudgetSpent(Project project) {
+        Long projectId=project.getId();
+        List<Resource> resources = resourceRepo.findByProjectId(projectId);
+        List<ProjectRateCard> rates = projectRateCardRepository.findByProjectId(projectId);
+
+        double total = 0;
+        double billingRatio = 235.0 / 365.0;
+
+        for (Resource resource : resources) {
+            for (ProjectRateCard rate : rates) {
+                if (rate.getLevel() == resource.getLevel()
+                        && !resource.getEndDate().isBefore(rate.getStartDate())
+                        && !resource.getStartDate().isAfter(rate.getEndDate())) {
+
+                    // Find overlapping duration
+                    LocalDate overlapStart = resource.getStartDate().isAfter(rate.getStartDate()) ? resource.getStartDate() : rate.getStartDate();
+                    LocalDate overlapEnd = resource.getEndDate().isBefore(rate.getEndDate()) ? resource.getEndDate() : rate.getEndDate();
+
+                    long actualDays = ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
+                    double effectiveBillingDays = actualDays * billingRatio;
+
+                    total += effectiveBillingDays * rate.getRate();
+                }
+            }
+        }
+        return total;
     }
     @Override
-    public Double calculateBudgetSpentById(Long projectId) {
-        Project project = getProjectEntity(projectId);
+    public Double calculateBudgetSpentById(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
+
         return calculateBudgetSpent(project);
     }
 
 
-    private ProjectDTO mapToDTO(Project project) {
-        ProjectDTO dto = new ProjectDTO();
-        dto.setId(project.getId());
-        dto.setProjectName(project.getProjectName());
-        dto.setType(project.getType());
-        dto.setDepartment(project.getDepartment());
-        dto.setStatus(project.getStatus() != null ? project.getStatus().name() : null);
-        dto.setBudget(project.getBudget());
-        dto.setClientId(project.getClient() != null ? project.getClient().getId() : null);
-        dto.setProjectLeadId(project.getProjectLead() != null ? project.getProjectLead().getId() : null);
-        dto.setProjectRateCardId(project.getProjectRateCard() != null ? project.getProjectRateCard().getId() : null);
-        return dto;
+    private Project getProjectEntity(Long id) {
+        return projectRepository.findById(id)
+                .orElseThrow(() -> new ProjectNotFoundException(id));
     }
+
+
+
+    private ProjectDTO mapToDTO(Project project) {
+        if (project == null) return null;
+
+        return ProjectDTO.builder()
+                .id(project.getId())
+                .projectName(project.getProjectName())
+                .type(project.getType()) // ProjectType enum
+                .department(project.getDepartment())
+                .status(project.getStatus() != null ? project.getStatus().name() : null)
+                .budget(project.getBudget())
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate())
+                .clientId(project.getClient() != null ? project.getClient().getId() : null)
+                .projectLeadId(project.getProjectLead() != null ? project.getProjectLead().getId() : null)
+                .projectRateCardId(project.getProjectRateCard() != null ? project.getProjectRateCard().getId() : null)
+                .build();
+    }
+
 
     @Override
     public ContactPersonDTO getContactPersonByProjectId(Long projectId) {
@@ -186,42 +322,48 @@ public class ProjectServiceImpl implements ProjectService {
         return new ContactPersonDTO(
                 person.getId(),
                 person.getName(),
-                person.getEmail(),
+                person.getEmail(),person.getPhone(),
                 person.getProject().getId()
         );
     }
 
     private Project mapToEntity(ProjectDTO dto) {
-        Project.ProjectBuilder builder = Project.builder()
-                .id(dto.getId())
-                .projectName(dto.getProjectName())
-                .type(dto.getType())
-                .department(dto.getDepartment())
-                .budget(dto.getBudget());
+        if (dto == null) return null;
+
+        Project project = new Project();
+        project.setId(dto.getId());
+        project.setProjectName(dto.getProjectName());
+        project.setType(dto.getType()); // ProjectType enum
+        project.setDepartment(dto.getDepartment());
 
         if (dto.getStatus() != null) {
-            builder.status(Project.Status.valueOf(dto.getStatus()));
+            project.setStatus(Project.Status.valueOf(dto.getStatus()));
         }
 
+        project.setBudget(dto.getBudget());
+        project.setStartDate(dto.getStartDate());
+        project.setEndDate(dto.getEndDate());
+
         if (dto.getClientId() != null) {
-            Client client = clientRepo.findById(dto.getClientId())
-                    .orElseThrow(() -> new ClientNotFoundException(dto.getClientId()));
-            builder.client(client);
+            Client client = new Client();
+            client.setId(dto.getClientId());
+            project.setClient(client);
         }
 
         if (dto.getProjectLeadId() != null) {
-            ProjectLead projectLead = leadRepo.findById(dto.getProjectLeadId())
-                    .orElseThrow(() -> new ProjectLeadNotFoundException(dto.getProjectLeadId()));
-            builder.projectLead(projectLead);
+            ProjectLead lead = new ProjectLead();
+            lead.setId(dto.getProjectLeadId());
+            project.setProjectLead(lead);
         }
 
         if (dto.getProjectRateCardId() != null) {
-            ProjectRateCard rateCard = projectRateCardRepository.findById(dto.getProjectRateCardId())
-                    .orElseThrow(() -> new RateCardNotFoundException(dto.getProjectRateCardId()));
-            builder.projectRateCard(rateCard);
+            ProjectRateCard rateCard = new ProjectRateCard();
+            rateCard.setId(dto.getProjectRateCardId());
+            project.setProjectRateCard(rateCard);
         }
 
-        return builder.build();
+        return project;
     }
+
 
 }

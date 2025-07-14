@@ -13,6 +13,7 @@ import com.pm.Project_Management_Server.entity.ResourceLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,33 +31,33 @@ public class RateCardServiceImpl implements RateCardService {
     @Autowired
     private ProjectRepository projectRepository;
 
-    @Override
     public ProjectRateCardDTO addRateCard(ProjectRateCardDTO request) {
-        // 1. Fetch project
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new ProjectNotFoundException(request.getProjectId()));
 
-        // 2. Create ProjectRateCard entity
+        LocalDate today = LocalDate.now();
+
+        // Deactivate existing rate card for same level
+        projectRateCardRepository.findByProjectIdAndLevel(project.getId(), request.getLevel())
+                .ifPresent(existingCard -> {
+                    existingCard.setActive(false);
+                    existingCard.setEndDate(today.minusDays(1)); // End yesterday
+                    projectRateCardRepository.save(existingCard);
+                });
+
+        // Create and save new rate card
         ProjectRateCard rateCard = new ProjectRateCard();
         rateCard.setProject(project);
         rateCard.setLevel(request.getLevel());
         rateCard.setRate(request.getRate());
-        rateCard.setActive(request.getActive());
-        rateCard.setLastUpdated(LocalDateTime.now());
+        rateCard.setActive(true);
+        rateCard.setStartDate(today);
+        rateCard.setEndDate(request.getEndDate()); // Can still be passed optionally
 
-        // 3. Save entity
         ProjectRateCard saved = projectRateCardRepository.save(rateCard);
-
-        // 4. Map back to DTO
-        return new ProjectRateCardDTO(
-                saved.getId(),
-                saved.getProject().getId(),
-                saved.getLevel(),
-                saved.getRate(),
-                saved.getActive(),
-                saved.getLastUpdated()
-        );
+        return toProjectRateCardDTO(saved);
     }
+
 
 
     @Override
@@ -66,14 +67,13 @@ public class RateCardServiceImpl implements RateCardService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     public List<ProjectRateCardDTO> getProjectRates(Long projectId) {
         List<ProjectRateCard> projectRateCards = projectRateCardRepository.findByProjectId(projectId);
 
         if (!projectRateCards.isEmpty()) {
             return projectRateCards.stream()
-                    .map(this::toProjectDTO)
+                    .map(this::toProjectRateCardDTO)
                     .collect(Collectors.toList());
         }
 
@@ -86,55 +86,6 @@ public class RateCardServiceImpl implements RateCardService {
     }
 
 
-    @Override
-    public ProjectRateCardDTO overrideRate(Long projectId, String level, Double rate) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectNotFoundException(projectId));
-        
-        ResourceLevel lvl;
-        try {
-            lvl = ResourceLevel.valueOf(level.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid level: " + level);
-        }
-        
-        // Deactivate any existing active rate for this project+level
-        Optional<ProjectRateCard> existingOpt = projectRateCardRepository.findByProjectIdAndLevel(projectId, lvl);
-        if (existingOpt.isPresent() && existingOpt.get().getActive()) {
-            ProjectRateCard existing = existingOpt.get();
-            existing.setActive(false);
-            projectRateCardRepository.save(existing);
-        }
-        
-        ProjectRateCard prc = existingOpt.orElse(new ProjectRateCard());
-        prc.setProject(project);
-        prc.setLevel(lvl);
-        prc.setRate(rate);
-        prc.setActive(true);
-        prc.setLastUpdated(LocalDateTime.now());
-        
-        ProjectRateCard saved = projectRateCardRepository.save(prc);
-        return toProjectDTO(saved);
-    }
-
-    @Override
-    public void initializeProjectRatesFromGlobal(Long projectId) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectNotFoundException(projectId));
-        
-        List<GlobalRateCard> globalRates = globalRateCardRepository.findAll();
-        for (GlobalRateCard grc : globalRates) {
-            ProjectRateCard prc = new ProjectRateCard();
-            prc.setProject(project);
-            prc.setLevel(grc.getLevel());
-            prc.setRate(grc.getRate());
-            prc.setActive(true);
-            prc.setLastUpdated(LocalDateTime.now());
-            projectRateCardRepository.save(prc);
-        }
-    }
-
-
 
     private GlobalRateCardDTO toGlobalDTO(GlobalRateCard globalRateCard) {
         GlobalRateCardDTO dto = new GlobalRateCardDTO();
@@ -143,16 +94,18 @@ public class RateCardServiceImpl implements RateCardService {
         dto.setRate(globalRateCard.getRate());
         return dto;
     }
-    
-    private ProjectRateCardDTO toProjectDTO(ProjectRateCard projectRateCard) {
-        ProjectRateCardDTO dto = new ProjectRateCardDTO();
-        dto.setId(projectRateCard.getId());
-        dto.setProjectId(projectRateCard.getProject() != null ? projectRateCard.getProject().getId() : null);
-        dto.setLevel(projectRateCard.getLevel());
-        dto.setRate(projectRateCard.getRate());
-        dto.setActive(projectRateCard.getActive());
-        dto.setLastUpdated(projectRateCard.getLastUpdated());
-        return dto;
+
+
+    private ProjectRateCardDTO toProjectRateCardDTO(ProjectRateCard card) {
+        return ProjectRateCardDTO.builder()
+                .id(card.getId())
+                .projectId(card.getProject().getId())
+                .level(card.getLevel())
+                .rate(card.getRate())
+                .active(card.getActive())
+                .startDate(card.getStartDate())
+                .endDate(card.getEndDate())
+                .build();
     }
     private ProjectRateCardDTO toProjectDTO(GlobalRateCard globalCard) {
         return ProjectRateCardDTO.builder()
@@ -160,8 +113,18 @@ public class RateCardServiceImpl implements RateCardService {
                 .projectId(null)  // clearly indicates global fallback
                 .level(globalCard.getLevel())
                 .rate(globalCard.getRate())
-                .active(true) // or false if you want to mark differently
-                .lastUpdated(null) // since global might not have this
+                .active(true) // or false if you want to mark differently// since global might not have this
+                .build();
+    }
+    private ProjectRateCard toProjectRateCardEntity(ProjectRateCardDTO dto, Project project) {
+        return ProjectRateCard.builder()
+                .id(dto.getId())
+                .project(project)
+                .level(dto.getLevel())
+                .rate(dto.getRate())
+                .active(dto.getActive())
+                .startDate(dto.getStartDate())
+                .endDate(dto.getEndDate())
                 .build();
     }
 

@@ -26,19 +26,17 @@ public class ResourceServiceImpl implements ResourceService {
     public ResourceDTO addResource(ResourceDTO dto) {
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
-
         Resource resource = new Resource();
         BeanUtils.copyProperties(dto, resource);
         resource.setProject(project);
         resource.setAllocated(true);
-
         Resource saved = resourceRepository.save(resource);
-
         ResourceDTO response = new ResourceDTO();
         BeanUtils.copyProperties(saved, response);
         response.setProjectId(project.getId());
         return response;
     }
+
     @Override
     public List<ResourceDTO> getAllResources() {
         List<Resource> resources = resourceRepository.findAll();
@@ -115,9 +113,16 @@ public class ResourceServiceImpl implements ResourceService {
 
 
     private ResourceDTO convertToDTO(Resource resource) {
-        ResourceDTO dto = new ResourceDTO();
-        BeanUtils.copyProperties(resource, dto);
-        dto.setProjectId(resource.getProject().getId());
-        return dto;
+        return ResourceDTO.builder()
+                .id(resource.getId())
+                .resourceName(resource.getResourceName())
+                .level(resource.getLevel())
+                .startDate(resource.getStartDate())
+                .endDate(resource.getEndDate())
+                .allocated(resource.isAllocated())
+                .projectId(resource.getProject() != null ? resource.getProject().getId() : null)
+                .build();
     }
+
+
 }
