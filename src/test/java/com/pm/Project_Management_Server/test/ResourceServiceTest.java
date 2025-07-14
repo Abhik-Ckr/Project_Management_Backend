@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.test;
 
+import com.pm.Project_Management_Server.dto.ExitRequestDTO;
 import com.pm.Project_Management_Server.dto.ResourceDTO;
 import com.pm.Project_Management_Server.entity.Client;
 import com.pm.Project_Management_Server.entity.Project;
@@ -181,4 +182,38 @@ class ResourceServiceTest {
         when(projectRepo.findById(99L)).thenReturn(Optional.empty());
         assertThrows(ProjectNotFoundException.class, () -> service.addResource(dto));
     }
+    @Test
+    void testExitResource_Success() {
+        Long resourceId = 100L;
+        LocalDate exitDate = LocalDate.of(2025, 7, 15);
+
+        Resource existing = new Resource();
+        existing.setId(resourceId);
+        existing.setExited(false);
+        existing.setProject(Project.builder().id(1L).build());
+
+        when(resourceRepo.findById(resourceId)).thenReturn(Optional.of(existing));
+        when(resourceRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        ExitRequestDTO dto = new ExitRequestDTO();
+        dto.setExitDate(exitDate);
+
+        ResourceDTO result = service.exitResource(resourceId, dto);
+
+        assertEquals(exitDate, result.getActualEndDate());
+        assertTrue(result.isExited());
+    }
+    @Test
+    void testExitResource_ResourceNotFound() {
+        Long resourceId = 999L;
+        LocalDate exitDate = LocalDate.of(2025, 7, 15);
+
+        when(resourceRepo.findById(resourceId)).thenReturn(Optional.empty());
+
+        ExitRequestDTO dto = new ExitRequestDTO();
+        dto.setExitDate(exitDate);
+
+        assertThrows(ResourceNotFoundException.class, () -> service.exitResource(resourceId, dto));
+    }
+
 }

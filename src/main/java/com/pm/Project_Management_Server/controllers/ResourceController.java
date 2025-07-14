@@ -1,6 +1,7 @@
 package com.pm.Project_Management_Server.controllers;
 
 
+import com.pm.Project_Management_Server.dto.ExitRequestDTO;
 import com.pm.Project_Management_Server.services.ResourceServiceImpl;
 import com.pm.Project_Management_Server.dto.ResourceDTO;
 import com.pm.Project_Management_Server.services.ResourceService;
@@ -61,5 +62,11 @@ public class ResourceController {
         resourceService.deleteResource(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/exit")
+    public ResponseEntity<ResourceDTO> exitResource(@PathVariable Long id, @RequestBody ExitRequestDTO dto) {
+        return ResponseEntity.ok(resourceService.exitResource(id, dto));
+    }
+
 
 }

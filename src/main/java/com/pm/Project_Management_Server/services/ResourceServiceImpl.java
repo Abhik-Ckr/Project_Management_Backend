@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.services;
 
+import com.pm.Project_Management_Server.dto.ExitRequestDTO;
 import com.pm.Project_Management_Server.dto.ResourceDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.Resource;
@@ -114,6 +115,18 @@ public class ResourceServiceImpl implements ResourceService {
         }
         resourceRepository.deleteById(id);
     }
+    @Override
+    public ResourceDTO exitResource(Long id, ExitRequestDTO dto) {
+        Resource resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(id));
+
+        resource.setActualEndDate(dto.getExitDate());
+        resource.setExited(true);
+
+        Resource updated = resourceRepository.save(resource);
+        return convertToDTO(updated);
+    }
+
 
 
     private ResourceDTO convertToDTO(Resource resource) {

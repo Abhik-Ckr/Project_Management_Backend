@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.services;
 
+import com.pm.Project_Management_Server.dto.ExitRequestDTO;
 import com.pm.Project_Management_Server.dto.ResourceDTO;
 
 import java.util.List;
@@ -21,4 +22,7 @@ public interface ResourceService {
     List<ResourceDTO> getResourcesByClientId(Long clientId);
 
     void deleteResource(Long id);
+
+    ResourceDTO exitResource(Long id, ExitRequestDTO dto);
+
 }
