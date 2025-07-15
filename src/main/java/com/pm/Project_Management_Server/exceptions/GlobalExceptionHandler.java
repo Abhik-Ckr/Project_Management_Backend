@@ -21,8 +21,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<String> handleBadCreds(BadCredentialsException ex) {
+//    @ExceptionHandler(BadCredentialsException.class)
+//    public ResponseEntity<String> handleBadCreds(BadCredentialsException ex) {
+//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+//    }
+
+    @ExceptionHandler(InvalidLoginCredentialsException.class)
+    public ResponseEntity<String> handleInvalidCreds(InvalidLoginCredentialsException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 

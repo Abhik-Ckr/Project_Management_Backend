@@ -3,9 +3,10 @@ package com.pm.Project_Management_Server.test;
 import com.pm.Project_Management_Server.dto.UserCreateDTO;
 import com.pm.Project_Management_Server.entity.Users;
 import com.pm.Project_Management_Server.entity.UserType;
-import com.pm.Project_Management_Server.exceptions.BadCredentialsException;
+//import com.pm.Project_Management_Server.exceptions.BadCredentialsException;
 import com.pm.Project_Management_Server.exceptions.EmailAlreadyExistsException;
 //import com.pm.Project_Management_Server.exceptions.UserNameAlreadyExistsException;
+import com.pm.Project_Management_Server.exceptions.InvalidLoginCredentialsException;
 import com.pm.Project_Management_Server.repositories.UserRepository;
 import com.pm.Project_Management_Server.services.AuthService;
 import com.pm.Project_Management_Server.services.JwtService;
@@ -89,7 +90,7 @@ public class AuthServiceTest {
     void testLoginFails_WrongEmail() {
         when(userRepo.findByEmail("invalid@example.com")).thenReturn(Optional.empty());
 
-        assertThrows(BadCredentialsException.class, () ->
+        assertThrows(InvalidLoginCredentialsException.class, () ->
                 authService.login("invalid@example.com", "pass")
         );
 
@@ -101,7 +102,7 @@ public class AuthServiceTest {
         when(userRepo.findByEmail("john@example.com")).thenReturn(Optional.of(user));
         when(encoder.matches("wrongpass", "encodedPass")).thenReturn(false);
 
-        assertThrows(BadCredentialsException.class, () ->
+        assertThrows(InvalidLoginCredentialsException.class, () ->
                 authService.login("john@example.com", "wrongpass")
         );
     }

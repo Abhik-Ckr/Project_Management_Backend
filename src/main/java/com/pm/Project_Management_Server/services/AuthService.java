@@ -2,8 +2,9 @@ package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.*;
 import com.pm.Project_Management_Server.entity.*;
-import com.pm.Project_Management_Server.exceptions.BadCredentialsException;
+//import com.pm.Project_Management_Server.exceptions.BadCredentialsException;
 import com.pm.Project_Management_Server.exceptions.EmailAlreadyExistsException;
+import com.pm.Project_Management_Server.exceptions.InvalidLoginCredentialsException;
 import com.pm.Project_Management_Server.exceptions.UserNotFoundException;
 import com.pm.Project_Management_Server.exceptions.UsernameAlreadyExistsException;
 import com.pm.Project_Management_Server.mapper.UserMapper;
@@ -52,9 +53,9 @@ public class AuthService {
     //temporarily storing exceptions in the file!!!
     public String login(String email, String rawPwd) {
         Users user = userRepo.findByEmail(email)
-                .orElseThrow(BadCredentialsException::new);
+                .orElseThrow(InvalidLoginCredentialsException::new);
         if (!encoder.matches(rawPwd, user.getPassword()))
-            throw new BadCredentialsException();
+            throw new InvalidLoginCredentialsException();
 
         return jwtService.generateToken(user.getEmail());
     }
