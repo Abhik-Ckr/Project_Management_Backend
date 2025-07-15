@@ -9,6 +9,7 @@ public class ContactPersonDTO {
     private Long id;
     private String name;
     private String email;
+    private Long phone;
     private Long projectId;
 
 }

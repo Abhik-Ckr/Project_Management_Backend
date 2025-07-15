@@ -71,8 +71,8 @@ public class ContactPersonService {
 
 
 
-    private ContactPersonDTO toDTO(ContactPerson cp) {
+    private ContactPersonDTO toDTO(ContactPerson cp){
         Long projectId = cp.getProject() != null ? cp.getProject().getId() : null;
-        return new ContactPersonDTO(cp.getId(), cp.getName(), cp.getEmail(), projectId);
+        return new ContactPersonDTO(cp.getId(), cp.getName(), cp.getEmail(),cp.getPhone(), projectId);
     }
 }

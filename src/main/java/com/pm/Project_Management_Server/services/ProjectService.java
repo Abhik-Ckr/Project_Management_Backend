@@ -2,11 +2,20 @@ package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectDTO;
+import com.pm.Project_Management_Server.dto.ResourceDeficitDTO;
 import com.pm.Project_Management_Server.entity.Project;
 
 import java.util.List;
 
 public interface ProjectService {
+
+    List<ResourceDeficitDTO> getResourceDeficitReport(Long projectId);
+
+    int getTotalResourceDeficitCount(Long projectId);
+
+    int getTotalResourcesRequired(Long projectId);
+
+    double estimateCompletionCost(Long projectId);
 
     List<ProjectDTO> getAllProjects();
 
@@ -25,9 +34,13 @@ public interface ProjectService {
 
     List<ProjectDTO> getProjectsByStatus(Project.Status status);
 
+
+
     List<ProjectDTO> getProjectsOverBudget();
 
-    double calculateBudgetSpent(Project project);
+    Double calculateBudgetSpentById(Project project);
+
+    Double calculateBudgetSpent(Project project);
 
     Double calculateBudgetSpentById(Long id);
 

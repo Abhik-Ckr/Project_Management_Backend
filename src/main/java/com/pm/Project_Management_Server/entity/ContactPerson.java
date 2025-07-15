@@ -16,6 +16,7 @@ public class ContactPerson {
 
     private String name;
     private String email;
+    private Long phone;
 
     @OneToOne
     @JoinColumn(name = "project_id")

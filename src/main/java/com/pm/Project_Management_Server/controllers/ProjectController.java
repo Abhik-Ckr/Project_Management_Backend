@@ -3,6 +3,7 @@ package com.pm.Project_Management_Server.controllers;
 
 import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectDTO;
+import com.pm.Project_Management_Server.dto.ResourceDeficitDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.services.ProjectService;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +18,28 @@ import java.util.List;
 public class ProjectController {
     private final ProjectService projectService;
     // ---------- Basic CRUD ----------
+    @GetMapping("/{projectId}/total-deficit")
+    public ResponseEntity<Integer> getTotalDeficit(@PathVariable Long projectId) {
+        int count = projectService.getTotalResourceDeficitCount(projectId);
+        return ResponseEntity.ok(count);
+    }
+    @GetMapping("/{projectId}/resource-deficit")
+    public ResponseEntity<List<ResourceDeficitDTO>> getResourceDeficit(@PathVariable Long projectId) {
+        List<ResourceDeficitDTO> result = projectService.getResourceDeficitReport(projectId);
+        return ResponseEntity.ok(result);
+    }
 
     @GetMapping
     public ResponseEntity<List<ProjectDTO>> getAllProjects() {
         return ResponseEntity.ok(projectService.getAllProjects());
     }
+
+    @GetMapping("/{projectId}/estimated-completion-cost")
+    public ResponseEntity<Double> getEstimatedCompletionCost(@PathVariable Long projectId) {
+        double cost = projectService.estimateCompletionCost(projectId);
+        return ResponseEntity.ok(cost);
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectDTO> getProjectById(@PathVariable Long id) {
@@ -85,4 +103,10 @@ public class ProjectController {
     public ResponseEntity<Double> calculateBudgetSpent(@PathVariable Long id) {
         return ResponseEntity.ok(projectService.calculateBudgetSpentById(id));
     }
+    @GetMapping("/{projectId}/total-required")
+    public ResponseEntity<Integer> getTotalResourcesRequired(@PathVariable Long projectId) {
+        int totalRequired = projectService.getTotalResourcesRequired(projectId);
+        return ResponseEntity.ok(totalRequired);
+    }
+
 }
