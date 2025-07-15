@@ -5,14 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class ResourceDeficitDTO {
-    private ResourceLevel level;
-    private String status; // "DEFICIT" or "EXCESS"
-    private int difference; // always positive
+    private String level;
+    private int required;
+    private int allocated;
+    private int deficit;  // Positive = Deficit, Negative = Excess, 0 = Balanced
 }
-

@@ -118,7 +118,6 @@ public class ResourceServiceImpl implements ResourceService {
                 .resourceName(resource.getResourceName())
                 .level(resource.getLevel())
                 .startDate(resource.getStartDate())
-                .endDate(resource.getEndDate())
                 .allocated(resource.isAllocated())
                 .projectId(resource.getProject() != null ? resource.getProject().getId() : null)
                 .build();
