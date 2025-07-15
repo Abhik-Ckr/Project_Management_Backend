@@ -18,7 +18,5 @@ public class ProjectLead {
     private Users user;
 
 
-
-
     // 🔁 Do NOT include Project here to avoid cycle
 }

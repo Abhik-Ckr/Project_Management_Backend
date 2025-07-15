@@ -12,9 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,33 +30,48 @@ public class ProjectServiceImpl implements ProjectService {
     private final ClientRepository clientRepo;
     private final ContactPersonRepository contactPersonRepo;
     private final ResourceRequiredRepository resourceRequiredRepo;
+    private final ResourceAllocatedRepository resourceAllocatedRepo;
 
     // ---------- CRUD Operations using DTO ----------
 
+
     @Override
     public List<ResourceDeficitDTO> getResourceDeficitReport(Long projectId) {
-        // 1. Fetch required resources
+        // Step 1: Get required resources per level
         List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
+        Map<ResourceLevel, Integer> requiredMap = requiredList.stream()
+                .collect(Collectors.toMap(
+                        ResourceRequired::getResourceLevel,
+                        ResourceRequired::getQuantity
+                ));
 
-        // 2. Fetch allocated resources
-        List<Resource> allocatedResources = resourceRepo.findByProjectId(projectId);
+        // Step 2: Get currently allocated resources per level for this project
+        List<ResourceAllocated> allocatedList = resourceAllocatedRepo
+                .findByProjectIdAndEndDateIsNull(projectId);
+        Map<ResourceLevel, Long> allocatedMap = allocatedList.stream()
+                .collect(Collectors.groupingBy(
+                        ResourceAllocated::getLevel,
+                        Collectors.counting()
+                ));
 
-        // 3. Count actual allocations per level
-        Map<ResourceLevel, Long> actualMap = allocatedResources.stream()
-                .collect(Collectors.groupingBy(Resource::getLevel, Collectors.counting()));
+        // Step 3: Build the deficit report
+        Set<ResourceLevel> allLevels = new HashSet<>();
+        allLevels.addAll(requiredMap.keySet());
+        allLevels.addAll(allocatedMap.keySet());
 
         List<ResourceDeficitDTO> report = new ArrayList<>();
 
-        for (ResourceRequired req : requiredList) {
-            ResourceLevel level = req.getResourceLevel();
-            int requiredQty = req.getQuantity();
-            long actualQty = actualMap.getOrDefault(level, 0L);
+        for (ResourceLevel level : allLevels) {
+            int required = requiredMap.getOrDefault(level, 0);
+            int allocated = allocatedMap.getOrDefault(level, 0L).intValue();
+            int deficit = required - allocated;
 
-            if (actualQty < requiredQty) {
-                report.add(new ResourceDeficitDTO(level, "DEFICIT", requiredQty - (int) actualQty));
-            } else if (actualQty > requiredQty) {
-                report.add(new ResourceDeficitDTO(level, "EXCESS", (int) actualQty - requiredQty));
-            }
+            report.add(ResourceDeficitDTO.builder()
+                    .level(level.name())
+                    .required(required)
+                    .allocated(allocated)
+                    .deficit(deficit)  // >0 = need more, <0 = over-allocated
+                    .build());
         }
 
         return report;
@@ -66,24 +79,38 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public int getTotalResourceDeficitCount(Long projectId) {
+        // 1. Fetch required resources for the project
         List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
-        List<Resource> allocatedResources = resourceRepo.findByProjectId(projectId);
+        Map<ResourceLevel, Integer> requiredMap = requiredList.stream()
+                .collect(Collectors.toMap(
+                        ResourceRequired::getResourceLevel,
+                        ResourceRequired::getQuantity
+                ));
 
-        Map<ResourceLevel, Long> actualMap = allocatedResources.stream()
-                .collect(Collectors.groupingBy(Resource::getLevel, Collectors.counting()));
+        // 2. Fetch currently allocated resources (endDate is null)
+        List<ResourceAllocated> allocatedList = resourceAllocatedRepo.findByProjectIdAndEndDateIsNull(projectId);
+        Map<ResourceLevel, Long> allocatedMap = allocatedList.stream()
+                .collect(Collectors.groupingBy(
+                        ResourceAllocated::getLevel,
+                        Collectors.counting()
+                ));
 
+        // 3. Calculate total deficit
         int totalDeficit = 0;
+        for (Map.Entry<ResourceLevel, Integer> entry : requiredMap.entrySet()) {
+            ResourceLevel level = entry.getKey();
+            int required = entry.getValue();
+            int allocated = allocatedMap.getOrDefault(level, 0L).intValue();
+            int deficit = required - allocated;
 
-        for (ResourceRequired req : requiredList) {
-            int requiredQty = req.getQuantity();
-            long actualQty = actualMap.getOrDefault(req.getResourceLevel(), 0L);
-
-            if (actualQty < requiredQty) {
-                totalDeficit += (int) (requiredQty - actualQty);
+            if (deficit > 0) {
+                totalDeficit += deficit;
             }
         }
+
         return totalDeficit;
     }
+
     @Override
     public int getTotalResourcesRequired(Long projectId) {
         List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
@@ -93,38 +120,67 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+
     public double estimateCompletionCost(Long projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ProjectNotFoundException(projectId));
 
-        List<Resource> resources = resourceRepo.findByProjectId(projectId);
-        List<ProjectRateCard> rateCards = projectRateCardRepository.findByProjectId(projectId);
+        List<ResourceAllocated> allAllocations = resourceAllocatedRepo.findByProjectId(projectId);
+        List<ProjectRateCard> projectRateCards = projectRateCardRepository.findByProjectId(projectId);
+        List<GlobalRateCard> globalRateCards = globalRateCardRepository.findAll();
 
-        LocalDate projectEnd = project.getEndDate();
+        LocalDate projectEndDate = project.getEndDate();
         double totalCost = 0.0;
+        double workingDayRatio = 235.0 / 365.0;
 
-        for (Resource resource : resources) {
-            LocalDate resStart = resource.getStartDate();
-            LocalDate resEnd = resource.getEndDate() != null ? resource.getEndDate() : projectEnd;
+        for (ResourceAllocated ra : allAllocations) {
+            ResourceLevel level = ra.getLevel();
+            LocalDate start = ra.getStartDate();
+            LocalDate end = ra.getEndDate() != null ? ra.getEndDate() : projectEndDate;
 
-            // Fetch rate cards for the resource's level and overlapping dates
-            List<ProjectRateCard> applicableCards = rateCards.stream()
-                    .filter(card -> card.getLevel() == resource.getLevel())
-                    .filter(card -> !(card.getEndDate().isBefore(resStart) || card.getStartDate().isAfter(resEnd)))
-                    .toList();
+            while (!start.isAfter(end)) {
+                LocalDate searchStart = start;  // effectively final
+                ProjectRateCard applicableCard = projectRateCards.stream()
+                        .filter(card -> card.getLevel() == level &&
+                                !card.getStartDate().isAfter(end) &&
+                                (card.getEndDate() == null || !card.getEndDate().isBefore(searchStart)))
+                        .findFirst()
+                        .orElse(null);
 
-            for (ProjectRateCard card : applicableCards) {
-                LocalDate overlapStart = resStart.isAfter(card.getStartDate()) ? resStart : card.getStartDate();
-                LocalDate overlapEnd = resEnd.isBefore(card.getEndDate()) ? resEnd : card.getEndDate();
 
-                long workingDays = ChronoUnit.DAYS.between(overlapStart, overlapEnd.plusDays(1));
-                if (workingDays > 0) {
-                    totalCost += workingDays * card.getRate(); // No division, rate is already per day
+                double rate;
+                LocalDate rateStart;
+                LocalDate rateEnd;
+
+                if (applicableCard != null) {
+                    rate = applicableCard.getRate();
+                    rateStart = applicableCard.getStartDate();
+                    rateEnd = applicableCard.getEndDate() != null ? applicableCard.getEndDate() : end;
+                } else {
+                    GlobalRateCard globalCard = globalRateCards.stream()
+                            .filter(g -> g.getLevel() == level)
+                            .findFirst()
+                            .orElseThrow(() -> new RuntimeException("No global rate card for " + level));
+                    rate = globalCard.getRate();
+                    rateStart = start;
+                    rateEnd = end;
+                }
+
+                // Calculate overlap between allocation and rate card period
+                LocalDate overlapStart = start.isAfter(rateStart) ? start : rateStart;
+                LocalDate overlapEnd = end.isBefore(rateEnd) ? end : rateEnd;
+                long days = ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
+
+                if (days > 0) {
+                    totalCost += days * workingDayRatio * rate;
+                    start = overlapEnd.plusDays(1); // move start forward
+                } else {
+                    break;
                 }
             }
         }
 
-        return Math.round(totalCost * 100.0) / 100.0;
+        return totalCost;
     }
 
 
@@ -194,7 +250,7 @@ public class ProjectServiceImpl implements ProjectService {
             }
 
             if (dto.getType() != null) {
-                project.setType(dto.getType());
+                project.setType(Project.ProjectType.valueOf(dto.getType()));
             }
 
             if (dto.getStatus() != null) {
@@ -254,32 +310,57 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Double calculateBudgetSpent(Project project) {
-        Long projectId=project.getId();
-        List<Resource> resources = resourceRepo.findByProjectId(projectId);
-        List<ProjectRateCard> rates = projectRateCardRepository.findByProjectId(projectId);
+        if (project == null) return 0.0;
 
-        double total = 0;
-        double billingRatio = 235.0 / 365.0;
+        Long projectId = project.getId();
+        LocalDate today = LocalDate.now();
+        double totalCost = 0.0;
 
-        for (Resource resource : resources) {
-            for (ProjectRateCard rate : rates) {
-                if (rate.getLevel() == resource.getLevel()
-                        && !resource.getEndDate().isBefore(rate.getStartDate())
-                        && !resource.getStartDate().isAfter(rate.getEndDate())) {
+        List<ResourceAllocated> allocations = resourceAllocatedRepo.findByProjectId(projectId);
+        List<ProjectRateCard> rateCards = projectRateCardRepository.findByProjectId(projectId);
 
-                    // Find overlapping duration
-                    LocalDate overlapStart = resource.getStartDate().isAfter(rate.getStartDate()) ? resource.getStartDate() : rate.getStartDate();
-                    LocalDate overlapEnd = resource.getEndDate().isBefore(rate.getEndDate()) ? resource.getEndDate() : rate.getEndDate();
+        for (ResourceAllocated allocation : allocations) {
+            ResourceLevel level = allocation.getLevel();
+            LocalDate start = allocation.getStartDate();
+            LocalDate end = allocation.getEndDate() != null ? allocation.getEndDate() : today;
 
-                    long actualDays = ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
-                    double effectiveBillingDays = actualDays * billingRatio;
+            if (end.isAfter(today)) {
+                end = today; // only till today
+            }
 
-                    total += effectiveBillingDays * rate.getRate();
+            final LocalDate finalEnd = end;
+
+            while (!start.isAfter(finalEnd)) {
+                final LocalDate segmentStart = start;
+
+                ProjectRateCard applicableCard = rateCards.stream()
+                        .filter(card -> card.getLevel() == level &&
+                                !card.getStartDate().isAfter(finalEnd) &&
+                                (card.getEndDate() == null || !card.getEndDate().isBefore(segmentStart)))
+                        .findFirst()
+                        .orElse(null);
+
+                if (applicableCard == null) {
+                    break; // No rate card found for this segment
                 }
+
+                double rate = applicableCard.getRate();
+                LocalDate rateStart = applicableCard.getStartDate().isAfter(start) ? applicableCard.getStartDate() : start;
+                LocalDate rateEnd = applicableCard.getEndDate() != null && applicableCard.getEndDate().isBefore(end)
+                        ? applicableCard.getEndDate() : end;
+
+                long days = ChronoUnit.DAYS.between(rateStart, rateEnd.plusDays(1));
+                double adjustedDays = days * (235.0 / 365.0); // adjusted for 235 working days
+
+                totalCost += adjustedDays * rate;
+
+                start = rateEnd.plusDays(1); // move to next segment
             }
         }
-        return total;
+
+        return totalCost;
     }
+
     @Override
     public Double calculateBudgetSpentById(Long id) {
         Project project = projectRepository.findById(id)
@@ -302,7 +383,7 @@ public class ProjectServiceImpl implements ProjectService {
         return ProjectDTO.builder()
                 .id(project.getId())
                 .projectName(project.getProjectName())
-                .type(project.getType()) // ProjectType enum
+                .type(project.getType().name()) // ProjectType enum
                 .department(project.getDepartment())
                 .status(project.getStatus() != null ? project.getStatus().name() : null)
                 .budget(project.getBudget())
@@ -333,7 +414,7 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = new Project();
         project.setId(dto.getId());
         project.setProjectName(dto.getProjectName());
-        project.setType(dto.getType()); // ProjectType enum
+        project.setType(Project.ProjectType.valueOf(dto.getType())); // ProjectType enum
         project.setDepartment(dto.getDepartment());
 
         if (dto.getStatus() != null) {
