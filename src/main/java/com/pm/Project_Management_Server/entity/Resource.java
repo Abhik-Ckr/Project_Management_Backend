@@ -23,7 +23,6 @@ public class Resource {
     private ResourceLevel level;
 
     private LocalDate startDate;
-    private LocalDate endDate;
 
 
     private boolean allocated;
