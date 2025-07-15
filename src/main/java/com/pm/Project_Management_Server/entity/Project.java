@@ -17,7 +17,7 @@ public class Project {
     private Long id;
 
     private String projectName;
-    private ProjectType type;
+    private String type;
     private String department;
     //added new
     private LocalDate startDate;

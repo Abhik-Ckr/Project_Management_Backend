@@ -250,7 +250,7 @@ public class ProjectServiceImpl implements ProjectService {
             }
 
             if (dto.getType() != null) {
-                project.setType(Project.ProjectType.valueOf(dto.getType()));
+                project.setType(dto.getType().name());
             }
 
             if (dto.getStatus() != null) {
@@ -383,7 +383,7 @@ public class ProjectServiceImpl implements ProjectService {
         return ProjectDTO.builder()
                 .id(project.getId())
                 .projectName(project.getProjectName())
-                .type(project.getType().name()) // ProjectType enum
+                .type(Project.ProjectType.valueOf(project.getType())) // ProjectType enum
                 .department(project.getDepartment())
                 .status(project.getStatus() != null ? project.getStatus().name() : null)
                 .budget(project.getBudget())
@@ -414,7 +414,7 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = new Project();
         project.setId(dto.getId());
         project.setProjectName(dto.getProjectName());
-        project.setType(Project.ProjectType.valueOf(dto.getType())); // ProjectType enum
+        project.setType(dto.getType().name()); // ProjectType enum
         project.setDepartment(dto.getDepartment());
 
         if (dto.getStatus() != null) {
