@@ -209,10 +209,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public Double calculateBudgetSpentById(Project project) {
-        return 0.0;
-    }
+
 
 
     @Override

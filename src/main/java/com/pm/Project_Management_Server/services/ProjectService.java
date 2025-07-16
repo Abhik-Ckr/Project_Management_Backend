@@ -38,7 +38,7 @@ public interface ProjectService {
 
     List<ProjectDTO> getProjectsOverBudget();
 
-    Double calculateBudgetSpentById(Project project);
+
 
     Double calculateBudgetSpent(Project project);
 
