@@ -367,10 +367,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 
-    private Project getProjectEntity(Long id) {
-        return projectRepository.findById(id)
-                .orElseThrow(() -> new ProjectNotFoundException(id));
-    }
+
 
 
 
@@ -404,44 +401,30 @@ public class ProjectServiceImpl implements ProjectService {
                 person.getProject().getId()
         );
     }
-
     private Project mapToEntity(ProjectDTO dto) {
-        if (dto == null) return null;
-
-        Project project = new Project();
-        project.setId(dto.getId());
-        project.setProjectName(dto.getProjectName());
-        project.setType(dto.getType().name()); // ProjectType enum
-        project.setDepartment(dto.getDepartment());
-
-        if (dto.getStatus() != null) {
-            project.setStatus(Project.Status.valueOf(dto.getStatus()));
-        }
-
-        project.setBudget(dto.getBudget());
-        project.setStartDate(dto.getStartDate());
-        project.setEndDate(dto.getEndDate());
-
-        if (dto.getClientId() != null) {
-            Client client = new Client();
-            client.setId(dto.getClientId());
-            project.setClient(client);
-        }
-
-        if (dto.getProjectLeadId() != null) {
-            ProjectLead lead = new ProjectLead();
-            lead.setId(dto.getProjectLeadId());
-            project.setProjectLead(lead);
-        }
-
-        if (dto.getProjectRateCardId() != null) {
-            ProjectRateCard rateCard = new ProjectRateCard();
-            rateCard.setId(dto.getProjectRateCardId());
-            project.setProjectRateCard(rateCard);
-        }
-
-        return project;
+        return Project.builder()
+                .id(dto.getId())
+                .projectName(dto.getProjectName())
+                .type(dto.getType() != null ? dto.getType().name() : null)  // Convert enum to String
+                .department(dto.getDepartment())
+                .status(dto.getStatus() != null
+                        ? Project.Status.valueOf(dto.getStatus())
+                        : Project.Status.ACTIVE)
+                .budget(dto.getBudget())
+                .startDate(dto.getStartDate() != null ? dto.getStartDate() : LocalDate.now())
+                .endDate(dto.getEndDate())
+                .client(dto.getClientId() != null
+                        ? clientRepo.findById(dto.getClientId()).orElse(null)
+                        : null)
+                .projectLead(dto.getProjectLeadId() != null
+                        ? leadRepo.findById(dto.getProjectLeadId()).orElse(null)
+                        : null)
+                .projectRateCard(dto.getProjectRateCardId() != null
+                        ? rateCardRepo.findById(dto.getProjectRateCardId()).orElse(null)
+                        : null)
+                .build();
     }
+
 
 
 }
