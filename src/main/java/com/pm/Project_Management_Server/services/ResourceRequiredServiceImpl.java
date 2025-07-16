@@ -29,7 +29,7 @@ public class ResourceRequiredServiceImpl implements ResourceRequiredService {
 
         ResourceRequired requirement = new ResourceRequired();
         requirement.setProject(project);
-        requirement.setResourceLevel(dto.getLevel());
+        requirement.setLevel(dto.getLevel());
         requirement.setQuantity(dto.getQuantity());
 
         ResourceRequired saved = resourceRequiredRepository.save(requirement);
@@ -50,7 +50,7 @@ public class ResourceRequiredServiceImpl implements ResourceRequiredService {
         ResourceRequired existing = resourceRequiredRepository.findById(id)
                 .orElseThrow(() -> new RequirementNotFoundException((id)));
 
-        existing.setResourceLevel(dto.getLevel());
+        existing.setLevel(dto.getLevel());
         existing.setQuantity(dto.getQuantity());
 
         ResourceRequired updated = resourceRequiredRepository.save(existing);
@@ -68,7 +68,7 @@ public class ResourceRequiredServiceImpl implements ResourceRequiredService {
     private ResourceRequiredDTO convertToDTO(ResourceRequired requirement) {
         ResourceRequiredDTO dto = new ResourceRequiredDTO();
         dto.setId(requirement.getId());
-        dto.setLevel(requirement.getResourceLevel());
+        dto.setLevel(requirement.getLevel());
         dto.setQuantity(requirement.getQuantity());
         dto.setProjectId(requirement.getProject().getId());
         return dto;

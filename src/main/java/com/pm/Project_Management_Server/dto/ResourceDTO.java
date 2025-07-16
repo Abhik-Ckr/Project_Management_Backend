@@ -20,7 +20,6 @@ public class ResourceDTO {
     private LocalDate startDate;
 
     private boolean allocated;
-    private Long projectId;  // Nullable — since resource may not be assigned to a project
 
 
 }

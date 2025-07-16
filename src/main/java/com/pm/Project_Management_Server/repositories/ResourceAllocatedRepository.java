@@ -12,7 +12,6 @@ import java.util.Optional;
 public interface ResourceAllocatedRepository extends JpaRepository<ResourceAllocated, Long> {
     List<ResourceAllocated> findByProjectId(Long projectId);
     List<ResourceAllocated> findByResourceId(Long resourceId);
-
     List<ResourceAllocated> findByProjectIdAndEndDateIsNull(Long projectId);
 
     Optional<ResourceAllocated> findTopByResourceIdAndEndDateIsNullOrderByStartDateDesc(Long resourceId);
