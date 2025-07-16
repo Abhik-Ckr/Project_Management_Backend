@@ -1,10 +1,13 @@
 package com.pm.Project_Management_Server.controllers;
 
+import com.pm.Project_Management_Server.dto.ResourceAllocatedDTO;
 import com.pm.Project_Management_Server.dto.ResourceAllocationRequestDTO;
 import com.pm.Project_Management_Server.services.ResourceAllocatedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/resource-allocations")
@@ -24,4 +27,11 @@ public class ResourceAllocatedController {
         String result = resourceAllocatedService.deallocateResource(resourceId);
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/client/{clientId}")
+    public ResponseEntity<List<ResourceAllocatedDTO>> getByClient(@PathVariable Long clientId) {
+        List<ResourceAllocatedDTO> list = resourceAllocatedService.getResourcesByClientId(clientId);
+        return ResponseEntity.ok(list);
+    }
+
 }
