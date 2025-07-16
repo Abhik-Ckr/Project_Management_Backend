@@ -4,6 +4,9 @@ import com.pm.Project_Management_Server.dto.OpenPositionDTO;
 import com.pm.Project_Management_Server.entity.OpenPosition;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.ResourceLevel;
+import com.pm.Project_Management_Server.exceptions.InvalidResourceLevelException;
+import com.pm.Project_Management_Server.exceptions.OpenPositionNotFoundException;
+import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
 import com.pm.Project_Management_Server.repositories.OpenPositionRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.services.OpenPositionService;
@@ -32,7 +35,7 @@ public class OpenPositionServiceImpl implements OpenPositionService {
     @Override
     public OpenPositionDTO getById(Long id) {
         OpenPosition op = openPositionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Open position not found"));
+                .orElseThrow(() -> new OpenPositionNotFoundException(id));
         return toDTO(op);
     }
 
@@ -46,10 +49,10 @@ public class OpenPositionServiceImpl implements OpenPositionService {
     @Override
     public OpenPositionDTO createOpenPosition(OpenPositionDTO dto) {
         Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
 
         if (dto.getLevel() == null) {
-            throw new RuntimeException("Resource level cannot be null");
+            throw new InvalidResourceLevelException();
         }
 
         OpenPosition op = OpenPosition.builder()
@@ -65,7 +68,7 @@ public class OpenPositionServiceImpl implements OpenPositionService {
     @Override
     public void deleteOpenPosition(Long id) {
         if (!openPositionRepository.existsById(id)) {
-            throw new RuntimeException("Open position not found");
+            throw new OpenPositionNotFoundException(id);
         }
         openPositionRepository.deleteById(id);
     }

@@ -16,4 +16,6 @@ public interface ProjectRateCardRepository extends JpaRepository<ProjectRateCard
     Optional<ProjectRateCard> findByProjectIdAndLevel(Long projectId, ResourceLevel level);
 
     List<ProjectRateCard> findByProjectIdAndActiveTrue(Long projectId);
+
+    List<ProjectRateCard> findByProjectIdAndLevelAndActiveTrue(Long projectId, ResourceLevel level);
 }

@@ -5,6 +5,10 @@ import com.pm.Project_Management_Server.dto.UserDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.ProjectLead;
 import com.pm.Project_Management_Server.entity.Users;
+import com.pm.Project_Management_Server.exceptions.NoLeadAssignedException;
+import com.pm.Project_Management_Server.exceptions.ProjectLeadNotFoundException;
+import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
+import com.pm.Project_Management_Server.exceptions.UserNotFoundException;
 import com.pm.Project_Management_Server.repositories.ContactPersonRepository;
 import com.pm.Project_Management_Server.repositories.ProjectLeadRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
@@ -36,7 +40,7 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
     @Override
     public ProjectLeadDTO getById(Long id) {
         ProjectLead lead = projectLeadRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project lead not found"));
+                .orElseThrow(() -> new ProjectLeadNotFoundException(id));
         return toDTO(lead);
     }
 
@@ -46,7 +50,7 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
     @Override
     public void removeProjectLead(Long id) {
         if (!projectLeadRepository.existsById(id)) {
-            throw new RuntimeException("Project lead not found");
+            throw new ProjectLeadNotFoundException(id);
         }
         projectLeadRepository.deleteById(id);
     }
@@ -54,11 +58,11 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
     @Override
     public UserDTO getUserByProjectId(Long projectId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ProjectNotFoundException(projectId));
 
         ProjectLead lead = project.getProjectLead();
         if (lead == null || lead.getUser() == null) {
-            throw new RuntimeException("No project lead or user assigned for this project");
+            throw new NoLeadAssignedException(projectId);
         }
 
         Users user = lead.getUser();
@@ -71,7 +75,7 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
     public ProjectLeadDTO addProjectLead(ProjectLeadDTO projectLeadDTO) {
         // 1. Fetch the user by ID
         Users user = userRepository.findById(projectLeadDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + projectLeadDTO.getUserId()));
+                .orElseThrow(() -> new UserNotFoundException(projectLeadDTO.getUserId()));
 
         // 2. Create and populate the ProjectLead entity
         ProjectLead projectLead = new ProjectLead();

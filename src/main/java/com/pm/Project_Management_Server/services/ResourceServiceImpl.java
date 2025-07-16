@@ -4,6 +4,8 @@ import com.pm.Project_Management_Server.dto.ResourceDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.Resource;
 import com.pm.Project_Management_Server.entity.ResourceLevel;
+import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
+import com.pm.Project_Management_Server.exceptions.ResourceNotFoundException;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.repositories.ResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,20 +25,18 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public ResourceDTO addResource(ResourceDTO dto) {
         Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found"));
-
+                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
         Resource resource = new Resource();
         BeanUtils.copyProperties(dto, resource);
         resource.setProject(project);
         resource.setAllocated(true);
-
         Resource saved = resourceRepository.save(resource);
-
         ResourceDTO response = new ResourceDTO();
         BeanUtils.copyProperties(saved, response);
         response.setProjectId(project.getId());
         return response;
     }
+
     @Override
     public List<ResourceDTO> getAllResources() {
         List<Resource> resources = resourceRepository.findAll();
@@ -55,11 +55,18 @@ public class ResourceServiceImpl implements ResourceService {
 
     @Override
     public List<ResourceDTO> getResourcesByLevel(String level) {
-        ResourceLevel resourceLevel = ResourceLevel.valueOf(level.toUpperCase());
-        return resourceRepository.findByLevel(resourceLevel)
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+//        ResourceLevel resourceLevel = ResourceLevel.valueOf(level.toUpperCase());
+//        return resourceRepository.findByLevel(resourceLevel)
+//                .stream()
+//                .map(this::convertToDTO)
+//                .collect(Collectors.toList());
+        try {
+            ResourceLevel resourceLevel = ResourceLevel.valueOf(level.toUpperCase());
+            return resourceRepository.findByLevel(resourceLevel)
+                    .stream().map(this::convertToDTO).collect(Collectors.toList());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid resource level: " + level);
+        }
     }
 
     @Override
@@ -99,16 +106,22 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public void deleteResource(Long id) {
         if (!resourceRepository.existsById(id)) {
-            throw new RuntimeException("Resource not found");
+            throw new ResourceNotFoundException(id);
         }
         resourceRepository.deleteById(id);
     }
 
 
     private ResourceDTO convertToDTO(Resource resource) {
-        ResourceDTO dto = new ResourceDTO();
-        BeanUtils.copyProperties(resource, dto);
-        dto.setProjectId(resource.getProject().getId());
-        return dto;
+        return ResourceDTO.builder()
+                .id(resource.getId())
+                .resourceName(resource.getResourceName())
+                .level(resource.getLevel())
+                .startDate(resource.getStartDate())
+                .allocated(resource.isAllocated())
+                .projectId(resource.getProject() != null ? resource.getProject().getId() : null)
+                .build();
     }
+
+
 }

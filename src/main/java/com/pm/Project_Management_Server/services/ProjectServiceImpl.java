@@ -2,14 +2,17 @@ package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectDTO;
+import com.pm.Project_Management_Server.dto.ResourceDeficitDTO;
 import com.pm.Project_Management_Server.entity.*;
+import com.pm.Project_Management_Server.exceptions.*;
 import com.pm.Project_Management_Server.repositories.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,8 +29,163 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectLeadRepository leadRepo;
     private final ClientRepository clientRepo;
     private final ContactPersonRepository contactPersonRepo;
+    private final ResourceRequiredRepository resourceRequiredRepo;
+    private final ResourceAllocatedRepository resourceAllocatedRepo;
 
     // ---------- CRUD Operations using DTO ----------
+
+
+    @Override
+    public List<ResourceDeficitDTO> getResourceDeficitReport(Long projectId) {
+        // Step 1: Get required resources per level
+        List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
+        Map<ResourceLevel, Integer> requiredMap = requiredList.stream()
+                .collect(Collectors.toMap(
+                        ResourceRequired::getResourceLevel,
+                        ResourceRequired::getQuantity
+                ));
+
+        // Step 2: Get currently allocated resources per level for this project
+        List<ResourceAllocated> allocatedList = resourceAllocatedRepo
+                .findByProjectIdAndEndDateIsNull(projectId);
+        Map<ResourceLevel, Long> allocatedMap = allocatedList.stream()
+                .collect(Collectors.groupingBy(
+                        ResourceAllocated::getLevel,
+                        Collectors.counting()
+                ));
+
+        // Step 3: Build the deficit report
+        Set<ResourceLevel> allLevels = new HashSet<>();
+        allLevels.addAll(requiredMap.keySet());
+        allLevels.addAll(allocatedMap.keySet());
+
+        List<ResourceDeficitDTO> report = new ArrayList<>();
+
+        for (ResourceLevel level : allLevels) {
+            int required = requiredMap.getOrDefault(level, 0);
+            int allocated = allocatedMap.getOrDefault(level, 0L).intValue();
+            int deficit = required - allocated;
+
+            report.add(ResourceDeficitDTO.builder()
+                    .level(level.name())
+                    .required(required)
+                    .allocated(allocated)
+                    .deficit(deficit)  // >0 = need more, <0 = over-allocated
+                    .build());
+        }
+
+        return report;
+    }
+
+    @Override
+    public int getTotalResourceDeficitCount(Long projectId) {
+        // 1. Fetch required resources for the project
+        List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
+        Map<ResourceLevel, Integer> requiredMap = requiredList.stream()
+                .collect(Collectors.toMap(
+                        ResourceRequired::getResourceLevel,
+                        ResourceRequired::getQuantity
+                ));
+
+        // 2. Fetch currently allocated resources (endDate is null)
+        List<ResourceAllocated> allocatedList = resourceAllocatedRepo.findByProjectIdAndEndDateIsNull(projectId);
+        Map<ResourceLevel, Long> allocatedMap = allocatedList.stream()
+                .collect(Collectors.groupingBy(
+                        ResourceAllocated::getLevel,
+                        Collectors.counting()
+                ));
+
+        // 3. Calculate total deficit
+        int totalDeficit = 0;
+        for (Map.Entry<ResourceLevel, Integer> entry : requiredMap.entrySet()) {
+            ResourceLevel level = entry.getKey();
+            int required = entry.getValue();
+            int allocated = allocatedMap.getOrDefault(level, 0L).intValue();
+            int deficit = required - allocated;
+
+            if (deficit > 0) {
+                totalDeficit += deficit;
+            }
+        }
+
+        return totalDeficit;
+    }
+
+    @Override
+    public int getTotalResourcesRequired(Long projectId) {
+        List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
+        return requiredList.stream()
+                .mapToInt(ResourceRequired::getQuantity)
+                .sum();
+    }
+
+    @Override
+
+    public double estimateCompletionCost(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException(projectId));
+
+        List<ResourceAllocated> allAllocations = resourceAllocatedRepo.findByProjectId(projectId);
+        List<ProjectRateCard> projectRateCards = projectRateCardRepository.findByProjectId(projectId);
+        List<GlobalRateCard> globalRateCards = globalRateCardRepository.findAll();
+
+        LocalDate projectEndDate = project.getEndDate();
+        double totalCost = 0.0;
+        double workingDayRatio = 235.0 / 365.0;
+
+        for (ResourceAllocated ra : allAllocations) {
+            ResourceLevel level = ra.getLevel();
+            LocalDate start = ra.getStartDate();
+            LocalDate end = ra.getEndDate() != null ? ra.getEndDate() : projectEndDate;
+
+            while (!start.isAfter(end)) {
+                LocalDate searchStart = start;  // effectively final
+                ProjectRateCard applicableCard = projectRateCards.stream()
+                        .filter(card -> card.getLevel() == level &&
+                                !card.getStartDate().isAfter(end) &&
+                                (card.getEndDate() == null || !card.getEndDate().isBefore(searchStart)))
+                        .findFirst()
+                        .orElse(null);
+
+
+                double rate;
+                LocalDate rateStart;
+                LocalDate rateEnd;
+
+                if (applicableCard != null) {
+                    rate = applicableCard.getRate();
+                    rateStart = applicableCard.getStartDate();
+                    rateEnd = applicableCard.getEndDate() != null ? applicableCard.getEndDate() : end;
+                } else {
+                    GlobalRateCard globalCard = globalRateCards.stream()
+                            .filter(g -> g.getLevel() == level)
+                            .findFirst()
+                            .orElseThrow(() -> new RuntimeException("No global rate card for " + level));
+                    rate = globalCard.getRate();
+                    rateStart = start;
+                    rateEnd = end;
+                }
+
+                // Calculate overlap between allocation and rate card period
+                LocalDate overlapStart = start.isAfter(rateStart) ? start : rateStart;
+                LocalDate overlapEnd = end.isBefore(rateEnd) ? end : rateEnd;
+                long days = ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
+
+                if (days > 0) {
+                    totalCost += days * workingDayRatio * rate;
+                    start = overlapEnd.plusDays(1); // move start forward
+                } else {
+                    break;
+                }
+            }
+        }
+
+        return totalCost;
+    }
+
+
+
+
 
     @Override
     public List<ProjectDTO> getAllProjects() {
@@ -37,36 +195,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 
-    @Override
-    public double calculateBudgetSpent(Project project) {
-        List<Resource> resources = resourceRepo.findByProjectId(project.getId());
-        double totalSpent = 0.0;
 
-        for (Resource resource : resources) {
-            if (resource.getStartDate() != null) {
-                // Use endDate if available, otherwise use today's date
-                LocalDate endDate = (resource.getEndDate() != null)
-                        ? resource.getEndDate()
-                        : LocalDate.now();
-
-                long days = java.time.temporal.ChronoUnit.DAYS.between(
-                        resource.getStartDate(), endDate);
-
-                double rate = projectRateCardRepository
-                        .findByProjectIdAndLevel(project.getId(), resource.getLevel())
-                        .filter(ProjectRateCard::getActive)
-                        .map(ProjectRateCard::getRate)
-                        .orElseGet(() -> globalRateCardRepository
-                                .findByLevel(resource.getLevel())
-                                .map(GlobalRateCard::getRate)
-                                .orElse(0.0));
-
-                totalSpent += days * rate;
-            }
-        }
-
-        return totalSpent;
-    }
 
 
     @Override
@@ -81,6 +210,8 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 
+
+
     @Override
     public long countProjectsOverBudget() {
         return getProjectsOverBudget().size();
@@ -90,9 +221,12 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDTO getProjectById(Long id) {
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
+                .orElseThrow(() -> new ProjectNotFoundException(id));
         return mapToDTO(project);
     }
+
+
+
 
     @Override
     public ProjectDTO createProject(ProjectDTO dto) {
@@ -103,28 +237,46 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDTO updateProject(Long id, ProjectDTO dto) {
         return projectRepository.findById(id).map(project -> {
-            project.setProjectName(dto.getProjectName());
-            project.setDepartment(dto.getDepartment());
-            project.setType(dto.getType());
-            project.setStatus(Project.Status.valueOf(dto.getStatus()));
-            project.setBudget(dto.getBudget() != null ? dto.getBudget() : null);
+
+            if (dto.getProjectName() != null) {
+                project.setProjectName(dto.getProjectName());
+            }
+
+            if (dto.getDepartment() != null) {
+                project.setDepartment(dto.getDepartment());
+            }
+
+            if (dto.getType() != null) {
+                project.setType(dto.getType().name());
+            }
+
+            if (dto.getStatus() != null) {
+                project.setStatus(Project.Status.valueOf(dto.getStatus()));
+            }
+
+            if (dto.getBudget() != null) {
+                project.setBudget(dto.getBudget());
+            }
+
             if (dto.getClientId() != null) {
                 project.setClient(clientRepo.findById(dto.getClientId())
-                        .orElseThrow(() -> new RuntimeException("Client not found")));
+                        .orElseThrow(() -> new ClientNotFoundException(dto.getClientId())));
             }
 
             if (dto.getProjectLeadId() != null) {
                 project.setProjectLead(leadRepo.findById(dto.getProjectLeadId())
-                        .orElseThrow(() -> new RuntimeException("Project lead not found")));
+                        .orElseThrow(() -> new ProjectLeadNotFoundException(dto.getProjectLeadId())));
             }
 
             if (dto.getProjectRateCardId() != null) {
                 project.setProjectRateCard(rateCardRepo.findById(dto.getProjectRateCardId())
-                        .orElseThrow(() -> new RuntimeException("Rate card not found")));
+                        .orElseThrow(() -> new RateCardNotFoundException(dto.getProjectRateCardId())));
             }
 
-            return mapToDTO(projectRepository.save(project));
-        }).orElseThrow(() -> new RuntimeException("Project not found"));
+            Project updated = projectRepository.save(project);
+            return mapToDTO(updated);
+
+        }).orElseThrow(() -> new ProjectNotFoundException(id));
     }
 
     @Override
@@ -136,7 +288,7 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectDTO getProjectByLeadId(Long leadId) {
         return projectRepository.findByProjectLeadId(leadId)
                 .map(this::mapToDTO)
-                .orElseThrow(() -> new RuntimeException("No project found for this lead"));
+                .orElseThrow(() -> new ProjectForLeadNotFoundException(leadId));
     }
 
     @Override
@@ -153,74 +305,143 @@ public class ProjectServiceImpl implements ProjectService {
                 .collect(Collectors.toList());
     }
 
-    private Project getProjectEntity(Long id) {
-        return projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
-    }
     @Override
-    public Double calculateBudgetSpentById(Long projectId) {
-        Project project = getProjectEntity(projectId);
+    public Double calculateBudgetSpent(Project project) {
+        if (project == null) return 0.0;
+
+        Long projectId = project.getId();
+        LocalDate today = LocalDate.now();
+        double totalCost = 0.0;
+
+        List<ResourceAllocated> allocations = resourceAllocatedRepo.findByProjectId(projectId);
+        List<ProjectRateCard> rateCards = projectRateCardRepository.findByProjectId(projectId);
+
+        for (ResourceAllocated allocation : allocations) {
+            ResourceLevel level = allocation.getLevel();
+            LocalDate start = allocation.getStartDate();
+            LocalDate end = allocation.getEndDate() != null ? allocation.getEndDate() : today;
+
+            if (end.isAfter(today)) {
+                end = today; // only till today
+            }
+
+            final LocalDate finalEnd = end;
+
+            while (!start.isAfter(finalEnd)) {
+                final LocalDate segmentStart = start;
+
+                ProjectRateCard applicableCard = rateCards.stream()
+                        .filter(card -> card.getLevel() == level &&
+                                !card.getStartDate().isAfter(finalEnd) &&
+                                (card.getEndDate() == null || !card.getEndDate().isBefore(segmentStart)))
+                        .findFirst()
+                        .orElse(null);
+
+                if (applicableCard == null) {
+                    break; // No rate card found for this segment
+                }
+
+                double rate = applicableCard.getRate();
+                LocalDate rateStart = applicableCard.getStartDate().isAfter(start) ? applicableCard.getStartDate() : start;
+                LocalDate rateEnd = applicableCard.getEndDate() != null && applicableCard.getEndDate().isBefore(end)
+                        ? applicableCard.getEndDate() : end;
+
+                long days = ChronoUnit.DAYS.between(rateStart, rateEnd.plusDays(1));
+                double adjustedDays = days * (235.0 / 365.0); // adjusted for 235 working days
+
+                totalCost += adjustedDays * rate;
+
+                start = rateEnd.plusDays(1); // move to next segment
+            }
+        }
+
+        return totalCost;
+    }
+
+    @Override
+    public Double calculateBudgetSpentById(Long id) {
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + id));
+
         return calculateBudgetSpent(project);
     }
 
 
-    private ProjectDTO mapToDTO(Project project) {
-        ProjectDTO dto = new ProjectDTO();
-        dto.setId(project.getId());
-        dto.setProjectName(project.getProjectName());
-        dto.setType(project.getType());
-        dto.setDepartment(project.getDepartment());
-        dto.setStatus(project.getStatus() != null ? project.getStatus().name() : null);
-        dto.setBudget(project.getBudget());
-        dto.setClientId(project.getClient() != null ? project.getClient().getId() : null);
-        dto.setProjectLeadId(project.getProjectLead() != null ? project.getProjectLead().getId() : null);
-        dto.setProjectRateCardId(project.getProjectRateCard() != null ? project.getProjectRateCard().getId() : null);
-        return dto;
+    private Project getProjectEntity(Long id) {
+        return projectRepository.findById(id)
+                .orElseThrow(() -> new ProjectNotFoundException(id));
     }
+
+
+
+    private ProjectDTO mapToDTO(Project project) {
+        if (project == null) return null;
+
+        return ProjectDTO.builder()
+                .id(project.getId())
+                .projectName(project.getProjectName())
+                .type(Project.ProjectType.valueOf(project.getType())) // ProjectType enum
+                .department(project.getDepartment())
+                .status(project.getStatus() != null ? project.getStatus().name() : null)
+                .budget(project.getBudget())
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate())
+                .clientId(project.getClient() != null ? project.getClient().getId() : null)
+                .projectLeadId(project.getProjectLead() != null ? project.getProjectLead().getId() : null)
+                .projectRateCardId(project.getProjectRateCard() != null ? project.getProjectRateCard().getId() : null)
+                .build();
+    }
+
 
     @Override
     public ContactPersonDTO getContactPersonByProjectId(Long projectId) {
         ContactPerson person = contactPersonRepo.findByProjectId(projectId)
-                .orElseThrow(() -> new RuntimeException("No contact person found for project ID: " + projectId));
+                .orElseThrow(() -> new ContactPersonNotFoundException(projectId));
         return new ContactPersonDTO(
                 person.getId(),
                 person.getName(),
-                person.getEmail(),
+                person.getEmail(),person.getPhone(),
                 person.getProject().getId()
         );
     }
 
     private Project mapToEntity(ProjectDTO dto) {
-        Project.ProjectBuilder builder = Project.builder()
-                .id(dto.getId())
-                .projectName(dto.getProjectName())
-                .type(dto.getType())
-                .department(dto.getDepartment())
-                .budget(dto.getBudget());
+        if (dto == null) return null;
+
+        Project project = new Project();
+        project.setId(dto.getId());
+        project.setProjectName(dto.getProjectName());
+        project.setType(dto.getType().name()); // ProjectType enum
+        project.setDepartment(dto.getDepartment());
 
         if (dto.getStatus() != null) {
-            builder.status(Project.Status.valueOf(dto.getStatus()));
+            project.setStatus(Project.Status.valueOf(dto.getStatus()));
         }
 
+        project.setBudget(dto.getBudget());
+        project.setStartDate(dto.getStartDate());
+        project.setEndDate(dto.getEndDate());
+
         if (dto.getClientId() != null) {
-            Client client = clientRepo.findById(dto.getClientId())
-                    .orElseThrow(() -> new RuntimeException("Client not found"));
-            builder.client(client);
+            Client client = new Client();
+            client.setId(dto.getClientId());
+            project.setClient(client);
         }
 
         if (dto.getProjectLeadId() != null) {
-            ProjectLead projectLead = leadRepo.findById(dto.getProjectLeadId())
-                    .orElseThrow(() -> new RuntimeException("Project Lead not found"));
-            builder.projectLead(projectLead);
+            ProjectLead lead = new ProjectLead();
+            lead.setId(dto.getProjectLeadId());
+            project.setProjectLead(lead);
         }
 
         if (dto.getProjectRateCardId() != null) {
-            ProjectRateCard rateCard = projectRateCardRepository.findById(dto.getProjectRateCardId())
-                    .orElseThrow(() -> new RuntimeException("Project Rate Card not found"));
-            builder.projectRateCard(rateCard);
+            ProjectRateCard rateCard = new ProjectRateCard();
+            rateCard.setId(dto.getProjectRateCardId());
+            project.setProjectRateCard(rateCard);
         }
 
-        return builder.build();
+        return project;
     }
+
 
 }

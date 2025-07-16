@@ -3,6 +3,8 @@ package com.pm.Project_Management_Server.services;
 import com.pm.Project_Management_Server.dto.GlobalRateCardDTO;
 import com.pm.Project_Management_Server.entity.GlobalRateCard;
 import com.pm.Project_Management_Server.entity.ResourceLevel;
+import com.pm.Project_Management_Server.exceptions.RateCardAlreadyExistsException;
+import com.pm.Project_Management_Server.exceptions.RateCardNotFoundException;
 import com.pm.Project_Management_Server.repositories.GlobalRateCardRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +31,7 @@ public class GlobalRateCardServiceImpl implements GlobalRateCardService {
     public GlobalRateCardDTO getById(Long id) {
         return repository.findById(id)
                 .map(this::toDTO)
-                .orElseThrow(() -> new RuntimeException("Rate card not found"));
+                .orElseThrow(() -> new RateCardNotFoundException("Rate card not found with id: " + id));
     }
 
     @Override
@@ -37,7 +39,7 @@ public class GlobalRateCardServiceImpl implements GlobalRateCardService {
         ResourceLevel level = ResourceLevel.valueOf(levelStr.toUpperCase());
         return repository.findByLevel(level)
                 .map(this::toDTO)
-                .orElseThrow(() -> new RuntimeException("Level not found: " + levelStr));
+                .orElseThrow(() -> new RateCardNotFoundException("Level not found: " + levelStr));
     }
 
     @Override
@@ -45,7 +47,7 @@ public class GlobalRateCardServiceImpl implements GlobalRateCardService {
         ResourceLevel level = ResourceLevel.valueOf(dto.getLevel().name());
 
         if (repository.existsByLevel(level)) {
-            throw new RuntimeException("Rate already exists for level: " + level);
+            throw new RateCardAlreadyExistsException(level.name());
         }
 
         GlobalRateCard entity = new GlobalRateCard();
@@ -58,7 +60,7 @@ public class GlobalRateCardServiceImpl implements GlobalRateCardService {
     @Override
     public void delete(Long id) {
         if (!repository.existsById(id)) {
-            throw new RuntimeException("Rate card not found");
+            throw new RateCardNotFoundException("Rate card not found with id: " + id);
         }
         repository.deleteById(id);
     }

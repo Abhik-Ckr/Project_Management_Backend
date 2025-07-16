@@ -9,9 +9,5 @@ import java.util.List;
 public interface RateCardService {
     List<GlobalRateCardDTO> getAllGlobalRates();
     List<ProjectRateCardDTO> getProjectRates(Long projectId);
-    ProjectRateCardDTO overrideRate(Long projectId, String level, Double rate);
-    void initializeProjectRatesFromGlobal(Long projectId);
-
-
     ProjectRateCardDTO addRateCard(ProjectRateCardDTO request);
 }

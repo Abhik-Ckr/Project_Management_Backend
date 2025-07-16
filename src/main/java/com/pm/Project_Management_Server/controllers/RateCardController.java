@@ -31,17 +31,9 @@ public class RateCardController {
         return ResponseEntity.ok(rateCardService.getProjectRates(projectId));
     }
 
-    @PostMapping("/project/{projectId}/init")
-    public ResponseEntity<Void> initializeProjectRatesFromGlobal(@PathVariable Long projectId) {
-        rateCardService.initializeProjectRatesFromGlobal(projectId);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
 
-    @PutMapping("/project/{projectId}/override")
-    public ResponseEntity<ProjectRateCardDTO> overrideRate(@PathVariable Long projectId, @RequestBody Map<String, Object> body) {
-        String level = (String) body.get("level");
-        Double rate = Double.valueOf(body.get("rate").toString());
-        ProjectRateCardDTO updated = rateCardService.overrideRate(projectId, level, rate);
-        return ResponseEntity.ok(updated);
-    }
+
+
+
+
 }

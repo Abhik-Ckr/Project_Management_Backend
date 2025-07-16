@@ -1,5 +1,8 @@
 package com.pm.Project_Management_Server.services;
 
+import com.pm.Project_Management_Server.exceptions.HighlightNotFoundException;
+import com.pm.Project_Management_Server.exceptions.InvalidHighlightDescriptionException;
+import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
 import com.pm.Project_Management_Server.repositories.HighlightRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.dto.CreateHighlightDTO;
@@ -22,11 +25,11 @@ public class HighlightServiceImpl implements HighlightService{
     @Override
     public HighlightDTO addHighlight(CreateHighlightDTO dto) {
         if (dto.getDescription() == null || dto.getDescription().trim().isEmpty()) {
-            throw new IllegalArgumentException("Description must not be null or blank");
+            throw new InvalidHighlightDescriptionException();
         }
         
         Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found with id: " + dto.getProjectId()));
+                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
 
         LocalDate today = LocalDate.now();
         // COMMENTED OUT FOR ALLOWING MULTIPLE HIGHLIGHTS!
@@ -58,7 +61,7 @@ public class HighlightServiceImpl implements HighlightService{
     @Override
     public void deleteHighlight(Long id) {
         if (!highlightRepository.existsById(id)) {
-            throw new RuntimeException("Highlight not found with id: " + id);
+            throw new HighlightNotFoundException(id);
         }
         highlightRepository.deleteById(id);
     }
@@ -72,10 +75,10 @@ public class HighlightServiceImpl implements HighlightService{
     @Override
     public HighlightDTO updateHighlight(Long id, HighlightDTO dto) {
         Highlight highlight = highlightRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Highlight not found"));
+                .orElseThrow(() -> new HighlightNotFoundException(id));
 
         Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
 
         highlight.setDescription(dto.getDescription());
         highlight.setCreatedOn(dto.getCreatedOn());
