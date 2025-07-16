@@ -20,7 +20,6 @@ public class Highlight {
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
-    @JsonBackReference
     private Project project;
 
     @Column(length = 1000)
