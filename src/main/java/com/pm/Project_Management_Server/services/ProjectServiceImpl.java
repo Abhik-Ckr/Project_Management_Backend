@@ -41,7 +41,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
         Map<ResourceLevel, Integer> requiredMap = requiredList.stream()
                 .collect(Collectors.toMap(
-                        ResourceRequired::getResourceLevel,
+                        ResourceRequired::getLevel,
                         ResourceRequired::getQuantity
                 ));
 
@@ -83,7 +83,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
         Map<ResourceLevel, Integer> requiredMap = requiredList.stream()
                 .collect(Collectors.toMap(
-                        ResourceRequired::getResourceLevel,
+                        ResourceRequired::getLevel,
                         ResourceRequired::getQuantity
                 ));
 

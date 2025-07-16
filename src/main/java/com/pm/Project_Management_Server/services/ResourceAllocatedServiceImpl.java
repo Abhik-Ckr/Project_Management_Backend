@@ -2,6 +2,7 @@ package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.ResourceAllocatedDTO;
 import com.pm.Project_Management_Server.dto.ResourceAllocationRequestDTO;
+import com.pm.Project_Management_Server.dto.ResourceDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.Resource;
 import com.pm.Project_Management_Server.entity.ResourceAllocated;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -87,6 +89,15 @@ public class ResourceAllocatedServiceImpl implements ResourceAllocatedService{
                 .toList();
     }
 
+
+    @Override
+    public List<ResourceAllocatedDTO> getResourcesByProject(Long projectId) {
+        List<ResourceAllocated> allocatedResources = resourceAllocatedRepository.findByProjectId(projectId);
+
+        return allocatedResources.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
 
 
     public ResourceAllocatedDTO mapToDTO(ResourceAllocated allocated) {

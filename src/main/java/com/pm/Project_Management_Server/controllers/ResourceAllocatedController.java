@@ -2,6 +2,7 @@ package com.pm.Project_Management_Server.controllers;
 
 import com.pm.Project_Management_Server.dto.ResourceAllocatedDTO;
 import com.pm.Project_Management_Server.dto.ResourceAllocationRequestDTO;
+import com.pm.Project_Management_Server.dto.ResourceDTO;
 import com.pm.Project_Management_Server.services.ResourceAllocatedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,4 +35,8 @@ public class ResourceAllocatedController {
         return ResponseEntity.ok(list);
     }
 
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<List<ResourceAllocatedDTO>> getResourcesByProject(@PathVariable Long projectId) {
+        return ResponseEntity.ok(resourceAllocatedService.getResourcesByProject(projectId));
+    }
 }
