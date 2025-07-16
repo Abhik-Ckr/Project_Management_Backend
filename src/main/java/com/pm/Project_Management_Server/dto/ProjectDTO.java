@@ -17,7 +17,7 @@ import java.time.LocalDate;
 public class ProjectDTO {
     private Long id;
     private String projectName;
-    private String type;
+    private ProjectType type;
     private String department;
     private String status;            // Enum as String: ACTIVE, COMPLETED, etc.
     private Double budget;
