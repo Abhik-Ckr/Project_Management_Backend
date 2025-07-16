@@ -1,17 +1,18 @@
 package com.pm.Project_Management_Server.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
+import java.time.LocalDate;
+
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateHighlightDTO {
     private Long projectId;
     @NotBlank(message = "Description must not be blank")
     private String description;
+    private LocalDate createdOn;
+
+
 }

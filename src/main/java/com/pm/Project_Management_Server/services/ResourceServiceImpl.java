@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 @Service
@@ -20,16 +21,20 @@ public class ResourceServiceImpl implements ResourceService {
     private final ResourceRepository resourceRepository;
     @Override
     public ResourceDTO addResource(ResourceDTO dto) {
-
         Resource resource = new Resource();
-        BeanUtils.copyProperties(dto, resource);
-        resource.setAllocated(true);
-        Resource saved = resourceRepository.save(resource);
-        ResourceDTO response = new ResourceDTO();
-        BeanUtils.copyProperties(saved, response);
-        return response;
-    }
 
+        resource.setResourceName(dto.getResourceName());
+        resource.setLevel(dto.getLevel());
+
+        // ✅ Set default startDate if not provided
+        resource.setStartDate(dto.getStartDate() != null ? dto.getStartDate() : LocalDate.now());
+
+        // ✅ Set default allocated if not provided
+        resource.setAllocated(dto.getAllocated() != null ? dto.getAllocated() : false);
+
+        Resource saved = resourceRepository.save(resource);
+        return convertToDTO(saved);
+    }
     @Override
     public List<ResourceDTO> getAllResources() {
         List<Resource> resources = resourceRepository.findAll();
