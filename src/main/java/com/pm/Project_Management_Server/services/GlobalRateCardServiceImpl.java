@@ -65,6 +65,18 @@ public class GlobalRateCardServiceImpl implements GlobalRateCardService {
         repository.deleteById(id);
     }
 
+    @Override
+    public GlobalRateCardDTO update(Long id, GlobalRateCardDTO dto) {
+        GlobalRateCard existing = repository.findById(id)
+                .orElseThrow(() -> new RateCardNotFoundException("Rate card not found with id: " + id));
+
+        existing.setLevel(dto.getLevel());
+        existing.setRate(dto.getRate());
+
+        return toDTO(repository.save(existing));
+    }
+
+
     private GlobalRateCardDTO toDTO(GlobalRateCard entity) {
         return new GlobalRateCardDTO(
                 entity.getId(),

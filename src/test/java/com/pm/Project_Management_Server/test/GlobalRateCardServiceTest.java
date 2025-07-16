@@ -106,6 +106,22 @@ public class GlobalRateCardServiceTest {
     }
 
     @Test
+    void testUpdate_Success() {
+        Long id = 1L;
+        GlobalRateCard existing = new GlobalRateCard(id, ResourceLevel.JR, 1000);
+        GlobalRateCardDTO updatedDto = new GlobalRateCardDTO(id, ResourceLevel.SR, 2000);
+
+        when(repository.findById(id)).thenReturn(Optional.of(existing));
+        when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        GlobalRateCardDTO result = service.update(id, updatedDto);
+
+        assertEquals(ResourceLevel.SR, result.getLevel());
+        assertEquals(2000, result.getRate());
+    }
+
+
+    @Test
     void testDelete_NotFound() {
         when(repository.existsById(99L)).thenReturn(false);
         assertThrows(RateCardNotFoundException.class, () -> service.delete(99L));
