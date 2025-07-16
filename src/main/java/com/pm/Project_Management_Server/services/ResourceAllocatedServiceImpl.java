@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -76,6 +77,16 @@ public class ResourceAllocatedServiceImpl implements ResourceAllocatedService{
 
         return "Resource allocated successfully";
     }
+
+    @Override
+    public List<ResourceAllocatedDTO> getResourcesByClientId(Long clientId) {
+        List<Project> projects = projectRepository.findByClientId(clientId);
+
+        return resourceAllocatedRepository.findByProjectIn(projects).stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
 
 
     public ResourceAllocatedDTO mapToDTO(ResourceAllocated allocated) {

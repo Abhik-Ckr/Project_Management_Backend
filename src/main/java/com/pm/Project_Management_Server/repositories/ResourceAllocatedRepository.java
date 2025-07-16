@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.repositories;
 
+import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.ResourceAllocated;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -16,5 +17,7 @@ public interface ResourceAllocatedRepository extends JpaRepository<ResourceAlloc
     List<ResourceAllocated> findByProjectIdAndEndDateIsNull(Long projectId);
 
     Optional<ResourceAllocated> findTopByResourceIdAndEndDateIsNullOrderByStartDateDesc(Long resourceId);
+
+    List<ResourceAllocated> findByProjectIn(List<Project> projects);
 }
 
