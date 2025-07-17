@@ -45,7 +45,11 @@ public class ProjectController {
     public ResponseEntity<ProjectDTO> getProjectById(@PathVariable Long id) {
         return ResponseEntity.ok(projectService.getProjectById(id));
     }
-
+    @GetMapping("/resourcedeficit-projects-count")
+    public ResponseEntity<Long> getProjectsWithResourceDeficit() {
+        long count = projectService.countProjectsWithResourceDeficit();
+        return ResponseEntity.ok(count);
+    }
 
     @PostMapping
     public ResponseEntity<ProjectDTO> createProject(@RequestBody ProjectDTO projectDTO) {

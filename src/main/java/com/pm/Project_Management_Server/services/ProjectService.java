@@ -15,6 +15,8 @@ public interface ProjectService {
 
     int getTotalResourcesRequired(Long projectId);
 
+    long countProjectsWithResourceDeficit();
+
     double estimateCompletionCost(Long projectId);
 
     List<ProjectDTO> getAllProjects();
