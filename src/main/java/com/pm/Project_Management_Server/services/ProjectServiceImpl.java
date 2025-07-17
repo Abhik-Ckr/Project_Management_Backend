@@ -119,6 +119,33 @@ public class ProjectServiceImpl implements ProjectService {
                 .sum();
     }
 
+    @Override
+    public long countProjectsWithResourceDeficit() {
+        List<Project> activeProjects = projectRepository.findByStatus(Project.Status.ACTIVE);
+        long deficitCount = 0;
+
+        for (Project project : activeProjects) {
+            List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(project.getId());
+            List<ResourceAllocated> allocatedList = resourceAllocatedRepo.findByProjectId(project.getId());
+
+            Map<ResourceLevel, Long> requiredMap = requiredList.stream()
+                    .collect(Collectors.groupingBy(ResourceRequired::getLevel, Collectors.summingLong(ResourceRequired::getQuantity)));
+
+            Map<ResourceLevel, Long> allocatedMap = allocatedList.stream()
+                    .collect(Collectors.groupingBy(ResourceAllocated::getLevel, Collectors.counting()));
+
+            boolean hasDeficit = requiredMap.entrySet().stream()
+                    .anyMatch(entry -> allocatedMap.getOrDefault(entry.getKey(), 0L) < entry.getValue());
+
+            if (hasDeficit) {
+                deficitCount++;
+            }
+        }
+
+        return deficitCount;
+    }
+
+
 
     @Override
     public double estimateCompletionCost(Long projectId) {
@@ -145,9 +172,7 @@ public class ProjectServiceImpl implements ProjectService {
                 Optional<ProjectRateCard> projectCardOpt = projectRateCards.stream()
                         .filter(card -> card.getLevel() == level &&
                                 !card.getStartDate().isAfter(end) &&
-                                (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate)))
-                        .sorted(Comparator.comparing(ProjectRateCard::getStartDate))
-                        .findFirst();
+                                (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate))).min(Comparator.comparing(ProjectRateCard::getStartDate));
 
                 double rate;
                 LocalDate rateStart;
@@ -163,9 +188,7 @@ public class ProjectServiceImpl implements ProjectService {
                     Optional<GlobalRateCard> globalCardOpt = globalRateCards.stream()
                             .filter(card -> card.getLevel() == level &&
                                     !card.getStartDate().isAfter(end) &&
-                                    (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate)))
-                            .sorted(Comparator.comparing(GlobalRateCard::getStartDate))
-                            .findFirst();
+                                    (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate))).min(Comparator.comparing(GlobalRateCard::getStartDate));
 
                     GlobalRateCard globalCard = globalCardOpt
                             .orElseThrow(() -> new RuntimeException("No global rate card found for level: " + level));
