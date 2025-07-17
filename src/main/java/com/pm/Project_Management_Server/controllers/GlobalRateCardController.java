@@ -26,6 +26,12 @@ public class GlobalRateCardController {
         return ResponseEntity.ok(service.getById(id));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<GlobalRateCardDTO> update(@PathVariable Long id, @Valid @RequestBody GlobalRateCardDTO dto) {
+        return ResponseEntity.ok(service.update(id, dto));
+    }
+
+
     @GetMapping("/level/{level}")
     public ResponseEntity<GlobalRateCardDTO> getByLevel(@PathVariable String level) {
         return ResponseEntity.ok(service.getByLevel(level));

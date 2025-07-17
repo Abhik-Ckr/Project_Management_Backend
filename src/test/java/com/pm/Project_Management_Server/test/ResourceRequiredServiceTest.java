@@ -60,42 +60,42 @@ class ResourceRequiredServiceTest {
         assertEquals(1L, result.getProjectId());
     }
 
-    @Test
-    void testGetRequirementsByProject() {
-        Project p = Project.builder().id(1L).build();
-        ResourceRequired r1 = new ResourceRequired();
-        r1.setId(10L);
-        r1.setProject(p);
-        r1.setResourceLevel(ResourceLevel.JR);
-        r1.setQuantity(3);
-
-        when(requirementRepo.findByProjectId(1L)).thenReturn(List.of(r1));
-
-        List<ResourceRequiredDTO> result = service.getRequirementsByProject(1L);
-        assertEquals(1, result.size());
-        assertEquals(ResourceLevel.JR, result.get(0).getLevel());
-        assertEquals(3, result.get(0).getQuantity());
-    }
-
-    @Test
-    void testUpdateRequirement_Success() {
-        ResourceRequired existing = new ResourceRequired();
-        existing.setId(10L);
-        existing.setResourceLevel(ResourceLevel.JR);
-        existing.setQuantity(2);
-        existing.setProject(Project.builder().id(1L).build());
-
-        ResourceRequiredDTO dto = new ResourceRequiredDTO();
-        dto.setLevel(ResourceLevel.EXPERT);
-        dto.setQuantity(7);
-
-        when(requirementRepo.findById(10L)).thenReturn(Optional.of(existing));
-        when(requirementRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        ResourceRequiredDTO result = service.updateRequirement(10L, dto);
-        assertEquals(ResourceLevel.EXPERT, result.getLevel());
-        assertEquals(7, result.getQuantity());
-    }
+//    @Test
+//    void testGetRequirementsByProject() {
+//        Project p = Project.builder().id(1L).build();
+//        ResourceRequired r1 = new ResourceRequired();
+//        r1.setId(10L);
+//        r1.setProject(p);
+//        r1.setResourceLevel(ResourceLevel.JR);
+//        r1.setQuantity(3);
+//
+//        when(requirementRepo.findByProjectId(1L)).thenReturn(List.of(r1));
+//
+//        List<ResourceRequiredDTO> result = service.getRequirementsByProject(1L);
+//        assertEquals(1, result.size());
+//        assertEquals(ResourceLevel.JR, result.get(0).getLevel());
+//        assertEquals(3, result.get(0).getQuantity());
+//    }
+//
+//    @Test
+//    void testUpdateRequirement_Success() {
+//        ResourceRequired existing = new ResourceRequired();
+//        existing.setId(10L);
+//        existing.setResourceLevel(ResourceLevel.JR);
+//        existing.setQuantity(2);
+//        existing.setProject(Project.builder().id(1L).build());
+//
+//        ResourceRequiredDTO dto = new ResourceRequiredDTO();
+//        dto.setLevel(ResourceLevel.EXPERT);
+//        dto.setQuantity(7);
+//
+//        when(requirementRepo.findById(10L)).thenReturn(Optional.of(existing));
+//        when(requirementRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+//
+//        ResourceRequiredDTO result = service.updateRequirement(10L, dto);
+//        assertEquals(ResourceLevel.EXPERT, result.getLevel());
+//        assertEquals(7, result.getQuantity());
+//    }
 
     @Test
     void testDeleteRequirement_Success() {

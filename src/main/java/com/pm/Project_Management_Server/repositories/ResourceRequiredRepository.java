@@ -9,8 +9,5 @@ import java.util.List;
 
 @Repository
 public interface ResourceRequiredRepository extends JpaRepository<ResourceRequired, Long> {
-
     List<ResourceRequired> findByProjectId(Long projectId);
-
-    List<ResourceRequired> findByResourceLevel(ResourceLevel resourceLevel);
 }

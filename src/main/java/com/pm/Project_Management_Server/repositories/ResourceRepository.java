@@ -10,11 +10,9 @@ import java.util.List;
 @Repository
 public interface ResourceRepository extends JpaRepository<Resource, Long> {
 
-    List<Resource> findByProjectId(Long projectId);
-
     List<Resource> findByLevel(ResourceLevel level);
 
     List<Resource> findByAllocated(boolean allocated);
-    List<Resource> findByProject_Client_Id(Long clientId);
+
 
 }

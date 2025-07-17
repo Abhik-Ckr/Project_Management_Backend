@@ -53,6 +53,8 @@ public class GlobalRateCardServiceImpl implements GlobalRateCardService {
         GlobalRateCard entity = new GlobalRateCard();
         entity.setLevel(level);
         entity.setRate(dto.getRate());
+        entity.setStartDate(dto.getStartDate());
+        entity.setEndDate(dto.getEndDate());
 
         return toDTO(repository.save(entity));
     }
@@ -65,11 +67,25 @@ public class GlobalRateCardServiceImpl implements GlobalRateCardService {
         repository.deleteById(id);
     }
 
+    @Override
+    public GlobalRateCardDTO update(Long id, GlobalRateCardDTO dto) {
+        GlobalRateCard existing = repository.findById(id)
+                .orElseThrow(() -> new RateCardNotFoundException("Rate card not found with id: " + id));
+
+        existing.setLevel(dto.getLevel());
+        existing.setRate(dto.getRate());
+        existing.setStartDate(dto.getStartDate());
+        existing.setEndDate(dto.getEndDate());
+
+        return toDTO(repository.save(existing));
+    }
+
+
     private GlobalRateCardDTO toDTO(GlobalRateCard entity) {
         return new GlobalRateCardDTO(
                 entity.getId(),
                 entity.getLevel(),
-                entity.getRate()
+                entity.getRate(),entity.getStartDate(),entity.getEndDate()
         );
     }
 }

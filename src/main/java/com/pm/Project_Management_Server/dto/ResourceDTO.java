@@ -2,14 +2,12 @@ package com.pm.Project_Management_Server.dto;
 
 import com.pm.Project_Management_Server.entity.ResourceLevel;
 import jdk.jshell.Snippet;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Data
+
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,8 +17,8 @@ public class ResourceDTO {
     private ResourceLevel level;
     private LocalDate startDate;
 
-    private boolean allocated;
-    private Long projectId;  // Nullable — since resource may not be assigned to a project
+    private Boolean allocated;
+
 
 
 }

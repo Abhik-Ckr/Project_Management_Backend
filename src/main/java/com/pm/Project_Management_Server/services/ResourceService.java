@@ -8,7 +8,7 @@ public interface ResourceService {
 
     ResourceDTO addResource(ResourceDTO dto);
     List<ResourceDTO> getAllResources();
-    List<ResourceDTO> getResourcesByProject(Long projectId);
+
 
     List<ResourceDTO> getResourcesByLevel(String level);
 
@@ -17,8 +17,6 @@ public interface ResourceService {
     List<ResourceDTO> getUnallocatedResources();
 
     ResourceDTO updateResource(Long id, ResourceDTO dto);
-
-    List<ResourceDTO> getResourcesByClientId(Long clientId);
 
     void deleteResource(Long id);
 }

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
@@ -14,6 +15,8 @@ public class GlobalRateCardDTO {
     private Long id;
     private ResourceLevel level;
     private double rate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
 
 

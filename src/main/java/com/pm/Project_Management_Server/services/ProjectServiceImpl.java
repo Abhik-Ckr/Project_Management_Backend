@@ -41,7 +41,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
         Map<ResourceLevel, Integer> requiredMap = requiredList.stream()
                 .collect(Collectors.toMap(
-                        ResourceRequired::getResourceLevel,
+                        ResourceRequired::getLevel,
                         ResourceRequired::getQuantity
                 ));
 
@@ -83,7 +83,7 @@ public class ProjectServiceImpl implements ProjectService {
         List<ResourceRequired> requiredList = resourceRequiredRepo.findByProjectId(projectId);
         Map<ResourceLevel, Integer> requiredMap = requiredList.stream()
                 .collect(Collectors.toMap(
-                        ResourceRequired::getResourceLevel,
+                        ResourceRequired::getLevel,
                         ResourceRequired::getQuantity
                 ));
 
@@ -119,69 +119,80 @@ public class ProjectServiceImpl implements ProjectService {
                 .sum();
     }
 
-    @Override
 
+    @Override
     public double estimateCompletionCost(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException(projectId));
 
-        List<ResourceAllocated> allAllocations = resourceAllocatedRepo.findByProjectId(projectId);
+        List<ResourceAllocated> allocations = resourceAllocatedRepo.findByProjectId(projectId);
         List<ProjectRateCard> projectRateCards = projectRateCardRepository.findByProjectId(projectId);
         List<GlobalRateCard> globalRateCards = globalRateCardRepository.findAll();
 
-        LocalDate projectEndDate = project.getEndDate();
         double totalCost = 0.0;
         double workingDayRatio = 235.0 / 365.0;
+        LocalDate projectEndDate = project.getEndDate();
 
-        for (ResourceAllocated ra : allAllocations) {
+        for (ResourceAllocated ra : allocations) {
             ResourceLevel level = ra.getLevel();
             LocalDate start = ra.getStartDate();
             LocalDate end = ra.getEndDate() != null ? ra.getEndDate() : projectEndDate;
 
             while (!start.isAfter(end)) {
-                LocalDate searchStart = start;  // effectively final
-                ProjectRateCard applicableCard = projectRateCards.stream()
+                LocalDate currentDate = start;
+
+                // 1. Try to find applicable ProjectRateCard
+                Optional<ProjectRateCard> projectCardOpt = projectRateCards.stream()
                         .filter(card -> card.getLevel() == level &&
                                 !card.getStartDate().isAfter(end) &&
-                                (card.getEndDate() == null || !card.getEndDate().isBefore(searchStart)))
-                        .findFirst()
-                        .orElse(null);
-
+                                (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate)))
+                        .sorted(Comparator.comparing(ProjectRateCard::getStartDate))
+                        .findFirst();
 
                 double rate;
                 LocalDate rateStart;
                 LocalDate rateEnd;
 
-                if (applicableCard != null) {
-                    rate = applicableCard.getRate();
-                    rateStart = applicableCard.getStartDate();
-                    rateEnd = applicableCard.getEndDate() != null ? applicableCard.getEndDate() : end;
+                if (projectCardOpt.isPresent()) {
+                    ProjectRateCard card = projectCardOpt.get();
+                    rate = card.getRate();
+                    rateStart = card.getStartDate();
+                    rateEnd = card.getEndDate() != null ? card.getEndDate() : end;
                 } else {
-                    GlobalRateCard globalCard = globalRateCards.stream()
-                            .filter(g -> g.getLevel() == level)
-                            .findFirst()
-                            .orElseThrow(() -> new RuntimeException("No global rate card for " + level));
+                    // 2. Fallback to time-bounded GlobalRateCard
+                    Optional<GlobalRateCard> globalCardOpt = globalRateCards.stream()
+                            .filter(card -> card.getLevel() == level &&
+                                    !card.getStartDate().isAfter(end) &&
+                                    (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate)))
+                            .sorted(Comparator.comparing(GlobalRateCard::getStartDate))
+                            .findFirst();
+
+                    GlobalRateCard globalCard = globalCardOpt
+                            .orElseThrow(() -> new RuntimeException("No global rate card found for level: " + level));
+
                     rate = globalCard.getRate();
-                    rateStart = start;
-                    rateEnd = end;
+                    rateStart = globalCard.getStartDate();
+                    rateEnd = globalCard.getEndDate() != null ? globalCard.getEndDate() : end;
                 }
 
-                // Calculate overlap between allocation and rate card period
+                // 3. Calculate overlap of allocation and rate period
                 LocalDate overlapStart = start.isAfter(rateStart) ? start : rateStart;
                 LocalDate overlapEnd = end.isBefore(rateEnd) ? end : rateEnd;
+
                 long days = ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
 
                 if (days > 0) {
                     totalCost += days * workingDayRatio * rate;
-                    start = overlapEnd.plusDays(1); // move start forward
+                    start = overlapEnd.plusDays(1); // Move to next time segment
                 } else {
-                    break;
+                    break; // No valid overlap
                 }
             }
         }
 
         return totalCost;
     }
+
 
 
 
@@ -307,51 +318,86 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Double calculateBudgetSpent(Project project) {
-        if (project == null) return 0.0;
+        if (project == null) {
+            throw new IllegalArgumentException("Project cannot be null");
+        }
 
-        Long projectId = project.getId();
         LocalDate today = LocalDate.now();
-        double totalCost = 0.0;
+        LocalDate projectStart = project.getStartDate();
+        LocalDate projectEnd = project.getEndDate() != null ? project.getEndDate() : today;
 
-        List<ResourceAllocated> allocations = resourceAllocatedRepo.findByProjectId(projectId);
-        List<ProjectRateCard> rateCards = projectRateCardRepository.findByProjectId(projectId);
+        if (projectStart == null) {
+            throw new IllegalArgumentException("Project start date is required");
+        }
+
+        // Fetch all allocations for the project
+        List<ResourceAllocated> allocations = resourceAllocatedRepo.findByProjectId(project.getId());
+
+        // Fetch rate cards (project-specific and global)
+        List<ProjectRateCard> projectCards = projectRateCardRepository.findByProjectId(project.getId());
+        List<GlobalRateCard> globalCards = globalRateCardRepository.findAll(); // or filter active only
+
+        double totalCost = 0.0;
 
         for (ResourceAllocated allocation : allocations) {
             ResourceLevel level = allocation.getLevel();
             LocalDate start = allocation.getStartDate();
             LocalDate end = allocation.getEndDate() != null ? allocation.getEndDate() : today;
 
-            if (end.isAfter(today)) {
-                end = today; // only till today
-            }
+            // Skip if allocation is fully beyond today
+            if (start.isAfter(today)) continue;
 
-            final LocalDate finalEnd = end;
+            // Cap end date at today
+            if (end.isAfter(today)) end = today;
 
-            while (!start.isAfter(finalEnd)) {
+            while (!start.isAfter(end)) {
                 final LocalDate segmentStart = start;
 
-                ProjectRateCard applicableCard = rateCards.stream()
-                        .filter(card -> card.getLevel() == level &&
-                                !card.getStartDate().isAfter(finalEnd) &&
-                                (card.getEndDate() == null || !card.getEndDate().isBefore(segmentStart)))
+                // 1. Find applicable project rate card for the level and date
+                ProjectRateCard card = projectCards.stream()
+                        .filter(c -> c.getLevel() == level &&
+                                !c.getStartDate().isAfter(segmentStart) &&
+                                (c.getEndDate() == null || !c.getEndDate().isBefore(segmentStart)))
                         .findFirst()
                         .orElse(null);
 
-                if (applicableCard == null) {
-                    break; // No rate card found for this segment
+                double rate;
+                LocalDate rateStart, rateEnd;
+
+                if (card != null) {
+                    rate = card.getRate();
+                    rateStart = segmentStart;
+                    rateEnd = card.getEndDate() != null ? card.getEndDate() : end;
+                } else {
+                    // 2. Fallback to global rate card
+                    GlobalRateCard globalCard = globalCards.stream()
+                            .filter(g -> g.getLevel() == level &&
+                                    !g.getStartDate().isAfter(segmentStart) &&
+                                    (g.getEndDate() == null || !g.getEndDate().isBefore(segmentStart)))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (globalCard == null) {
+                        // No applicable rate found, skip segment
+                        start = start.plusDays(1);
+                        continue;
+                    }
+
+                    rate = globalCard.getRate();
+                    rateStart = segmentStart;
+                    rateEnd = globalCard.getEndDate() != null ? globalCard.getEndDate() : end;
                 }
 
-                double rate = applicableCard.getRate();
-                LocalDate rateStart = applicableCard.getStartDate().isAfter(start) ? applicableCard.getStartDate() : start;
-                LocalDate rateEnd = applicableCard.getEndDate() != null && applicableCard.getEndDate().isBefore(end)
-                        ? applicableCard.getEndDate() : end;
+                // Determine the duration for which the rate is applied
+                LocalDate segmentEnd = rateEnd.isBefore(end) ? rateEnd : end;
 
-                long days = ChronoUnit.DAYS.between(rateStart, rateEnd.plusDays(1));
-                double adjustedDays = days * (235.0 / 365.0); // adjusted for 235 working days
+                long days = ChronoUnit.DAYS.between(segmentStart, segmentEnd.plusDays(1)); // inclusive
+                double adjustedDays = (days * 235.0) / 365.0;
 
                 totalCost += adjustedDays * rate;
 
-                start = rateEnd.plusDays(1); // move to next segment
+                // Move start to next day after this segment
+                start = segmentEnd.plusDays(1);
             }
         }
 

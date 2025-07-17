@@ -10,4 +10,5 @@ public interface GlobalRateCardService {
     GlobalRateCardDTO getByLevel(String level);
     GlobalRateCardDTO create(GlobalRateCardDTO dto);
     void delete(Long id);
+    GlobalRateCardDTO update(Long id, GlobalRateCardDTO dto);
 }

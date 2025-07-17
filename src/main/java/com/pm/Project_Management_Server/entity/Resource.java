@@ -23,11 +23,5 @@ public class Resource {
     private ResourceLevel level;
 
     private LocalDate startDate;
-
-
     private boolean allocated;
-
-    @ManyToOne
-    @JoinColumn(name = "project_id")
-    private Project project;
 }

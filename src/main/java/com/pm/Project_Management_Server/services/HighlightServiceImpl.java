@@ -27,29 +27,21 @@ public class HighlightServiceImpl implements HighlightService{
         if (dto.getDescription() == null || dto.getDescription().trim().isEmpty()) {
             throw new InvalidHighlightDescriptionException();
         }
-        
+
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
-
-        LocalDate today = LocalDate.now();
-        // COMMENTED OUT FOR ALLOWING MULTIPLE HIGHLIGHTS!
-//        boolean exists = highlightRepository.findByProjectId(project.getId())
-//                .stream()
-//                .anyMatch(h -> h.getCreatedOn().equals(today));
-//
-//        if (exists) {
-//            throw new RuntimeException("A highlight already exists for this project on " + today);
-//        }
-
 
         Highlight highlight = new Highlight();
         highlight.setProject(project);
         highlight.setDescription(dto.getDescription());
-        highlight.setCreatedOn(today);
-        
+
+        // ✅ Use today's date only if not provided
+        highlight.setCreatedOn(dto.getCreatedOn() != null ? dto.getCreatedOn() : LocalDate.now());
+
         Highlight saved = highlightRepository.save(highlight);
         return convertToDTO(saved);
     }
+
 
     @Override
     public List<HighlightDTO> getHighlightsByProject(Long projectId) {

@@ -12,31 +12,29 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class ResourceServiceImpl implements ResourceService {
-
     private final ResourceRepository resourceRepository;
-    private final ProjectRepository projectRepository;
-
     @Override
     public ResourceDTO addResource(ResourceDTO dto) {
-        Project project = projectRepository.findById(dto.getProjectId())
-                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
         Resource resource = new Resource();
-        BeanUtils.copyProperties(dto, resource);
-        resource.setProject(project);
-        resource.setAllocated(true);
-        Resource saved = resourceRepository.save(resource);
-        ResourceDTO response = new ResourceDTO();
-        BeanUtils.copyProperties(saved, response);
-        response.setProjectId(project.getId());
-        return response;
-    }
 
+        resource.setResourceName(dto.getResourceName());
+        resource.setLevel(dto.getLevel());
+
+        // ✅ Set default startDate if not provided
+        resource.setStartDate(dto.getStartDate() != null ? dto.getStartDate() : LocalDate.now());
+
+        // ✅ Set default allocated if not provided
+        resource.setAllocated(dto.getAllocated() != null ? dto.getAllocated() : false);
+
+        Resource saved = resourceRepository.save(resource);
+        return convertToDTO(saved);
+    }
     @Override
     public List<ResourceDTO> getAllResources() {
         List<Resource> resources = resourceRepository.findAll();
@@ -45,13 +43,6 @@ public class ResourceServiceImpl implements ResourceService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<ResourceDTO> getResourcesByProject(Long projectId) {
-        return resourceRepository.findByProjectId(projectId)
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
 
     @Override
     public List<ResourceDTO> getResourcesByLevel(String level) {
@@ -94,13 +85,6 @@ public class ResourceServiceImpl implements ResourceService {
         return convertToDTO(updated);
     }
 
-    @Override
-    public List<ResourceDTO> getResourcesByClientId(Long clientId) {
-        List<Resource> resources = resourceRepository.findByProject_Client_Id(clientId);
-        return resources.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
 
 
     @Override
@@ -119,7 +103,6 @@ public class ResourceServiceImpl implements ResourceService {
                 .level(resource.getLevel())
                 .startDate(resource.getStartDate())
                 .allocated(resource.isAllocated())
-                .projectId(resource.getProject() != null ? resource.getProject().getId() : null)
                 .build();
     }
 

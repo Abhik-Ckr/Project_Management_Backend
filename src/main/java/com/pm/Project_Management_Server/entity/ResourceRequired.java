@@ -8,16 +8,13 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "project")
 public class ResourceRequired {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Enumerated(EnumType.STRING)
-    private ResourceLevel resourceLevel;
-
+    private ResourceLevel level;
     private int quantity;
 
     @ManyToOne

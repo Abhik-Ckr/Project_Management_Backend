@@ -31,7 +31,7 @@ public class Project {
         ACTIVE, COMPLETED, ON_HOLD
     }
     @ManyToOne
-    @JoinColumn(name = "client_id")
+    @JoinColumn(name = "client_id",nullable = false)
     private Client client;
 
 //    @OneToOne
@@ -39,7 +39,7 @@ public class Project {
 //    private ContactPerson contactPerson;
 
     @OneToOne
-    @JoinColumn(name = "project_lead_id")
+    @JoinColumn(name = "project_lead_id",nullable = false)
     private ProjectLead projectLead;
 
     @OneToOne

@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -77,6 +79,25 @@ public class ResourceAllocatedServiceImpl implements ResourceAllocatedService{
         return "Resource allocated successfully";
     }
 
+    @Override
+    public List<ResourceAllocatedDTO> getResourcesByClientId(Long clientId) {
+        List<Project> projects = projectRepository.findByClientId(clientId);
+
+        return resourceAllocatedRepository.findByProjectIn(projects).stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
+
+    @Override
+    public List<ResourceAllocatedDTO> getResourcesByProject(Long projectId) {
+        List<ResourceAllocated> allocatedResources = resourceAllocatedRepository.findByProjectId(projectId);
+
+        return allocatedResources.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
 
     public ResourceAllocatedDTO mapToDTO(ResourceAllocated allocated) {
         return ResourceAllocatedDTO.builder()
@@ -106,6 +127,37 @@ public class ResourceAllocatedServiceImpl implements ResourceAllocatedService{
                 .resource(resource)
                 .build();
     }
+
+    @Override
+    public ResourceAllocatedDTO allocateResource(ResourceAllocatedDTO dto) {
+        Resource resource = resourceRepository.findById(dto.getResourceId())
+                .orElseThrow(() -> new ResourceNotFoundException(dto.getResourceId()));
+
+        Project project = projectRepository.findById(dto.getProjectId())
+                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
+
+        if (resource.isAllocated()) {
+            throw new IllegalStateException("Resource is already allocated");
+        }
+
+        // Create new ResourceAllocated
+        ResourceAllocated allocated = ResourceAllocated.builder()
+                .resource(resource)
+                .project(project)
+                .resourceName(resource.getResourceName())
+                .level(resource.getLevel())
+                .startDate(dto.getStartDate() != null ? dto.getStartDate() : LocalDate.now())
+                .endDate(dto.getEndDate())
+                .build();
+
+        // Mark resource as allocated
+        resource.setAllocated(true);
+        resourceRepository.save(resource);
+
+        ResourceAllocated saved = resourceAllocatedRepository.save(allocated);
+        return mapToDTO(saved);
+    }
+
 
 
 }
