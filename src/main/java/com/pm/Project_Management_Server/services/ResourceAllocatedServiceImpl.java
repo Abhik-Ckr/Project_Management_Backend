@@ -2,7 +2,6 @@ package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.ResourceAllocatedDTO;
 import com.pm.Project_Management_Server.dto.ResourceAllocationRequestDTO;
-import com.pm.Project_Management_Server.dto.ResourceDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.Resource;
 import com.pm.Project_Management_Server.entity.ResourceAllocated;
@@ -128,6 +127,37 @@ public class ResourceAllocatedServiceImpl implements ResourceAllocatedService{
                 .resource(resource)
                 .build();
     }
+
+    @Override
+    public ResourceAllocatedDTO allocateResource(ResourceAllocatedDTO dto) {
+        Resource resource = resourceRepository.findById(dto.getResourceId())
+                .orElseThrow(() -> new ResourceNotFoundException(dto.getResourceId()));
+
+        Project project = projectRepository.findById(dto.getProjectId())
+                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
+
+        if (resource.isAllocated()) {
+            throw new IllegalStateException("Resource is already allocated");
+        }
+
+        // Create new ResourceAllocated
+        ResourceAllocated allocated = ResourceAllocated.builder()
+                .resource(resource)
+                .project(project)
+                .resourceName(resource.getResourceName())
+                .level(resource.getLevel())
+                .startDate(dto.getStartDate() != null ? dto.getStartDate() : LocalDate.now())
+                .endDate(dto.getEndDate())
+                .build();
+
+        // Mark resource as allocated
+        resource.setAllocated(true);
+        resourceRepository.save(resource);
+
+        ResourceAllocated saved = resourceAllocatedRepository.save(allocated);
+        return mapToDTO(saved);
+    }
+
 
 
 }

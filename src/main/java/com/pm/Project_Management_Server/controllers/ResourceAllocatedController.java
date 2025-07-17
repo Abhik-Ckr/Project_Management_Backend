@@ -22,6 +22,12 @@ public class ResourceAllocatedController {
         String result = resourceAllocatedService.allocateResource(request);
         return ResponseEntity.ok(result);
     }
+    @PostMapping("/insert")
+    public ResponseEntity<ResourceAllocatedDTO> allocateResource(@RequestBody ResourceAllocatedDTO dto) {
+        ResourceAllocatedDTO saved = resourceAllocatedService.allocateResource(dto);
+        return ResponseEntity.ok(saved);
+    }
+
 
     @PutMapping("/{resourceId}/deallocate")
     public ResponseEntity<String> deallocateResource(@PathVariable Long resourceId) {

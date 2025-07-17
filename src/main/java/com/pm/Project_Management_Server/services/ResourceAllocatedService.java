@@ -16,4 +16,6 @@ public interface ResourceAllocatedService {
     List<ResourceAllocatedDTO> getResourcesByClientId(Long clientId);
 
     List<ResourceAllocatedDTO> getResourcesByProject(Long projectId);
+
+    ResourceAllocatedDTO allocateResource(ResourceAllocatedDTO dto);
 }
