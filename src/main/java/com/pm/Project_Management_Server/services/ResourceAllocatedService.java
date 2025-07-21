@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.List;
 
 public interface ResourceAllocatedService {
-    String deallocateResource(Long resourceId);
+    void deallocateResource(Long resourceId);
 
     String allocateResource(ResourceAllocationRequestDTO request);
 

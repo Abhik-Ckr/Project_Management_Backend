@@ -1,6 +1,7 @@
 package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.UserDTO;
+import com.pm.Project_Management_Server.entity.Users;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,4 +12,5 @@ public interface UserService {
     List<UserDTO> getUsersByType(String userType);
     boolean deleteUser(Long id);
 
+    List<Users> getAvailableProjectLeadUsers();
 }

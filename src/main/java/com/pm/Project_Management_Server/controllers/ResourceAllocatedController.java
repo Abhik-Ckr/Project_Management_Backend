@@ -17,11 +17,12 @@ public class ResourceAllocatedController {
 
     private final ResourceAllocatedService resourceAllocatedService;
 
-    @PostMapping
+    @PostMapping("/allocate")
     public ResponseEntity<String> allocateResource(@RequestBody ResourceAllocationRequestDTO request) {
         String result = resourceAllocatedService.allocateResource(request);
         return ResponseEntity.ok(result);
     }
+
     @PostMapping("/insert")
     public ResponseEntity<ResourceAllocatedDTO> allocateResource(@RequestBody ResourceAllocatedDTO dto) {
         ResourceAllocatedDTO saved = resourceAllocatedService.allocateResource(dto);
@@ -29,10 +30,10 @@ public class ResourceAllocatedController {
     }
 
 
-    @PutMapping("/{resourceId}/deallocate")
-    public ResponseEntity<String> deallocateResource(@PathVariable Long resourceId) {
-        String result = resourceAllocatedService.deallocateResource(resourceId);
-        return ResponseEntity.ok(result);
+    @PostMapping("/deallocate/{allocationId}")
+    public ResponseEntity<String> deallocateResource(@PathVariable Long allocationId) {
+        resourceAllocatedService.deallocateResource(allocationId);
+        return ResponseEntity.ok("Resource deallocated successfully.");
     }
 
     @GetMapping("/client/{clientId}")

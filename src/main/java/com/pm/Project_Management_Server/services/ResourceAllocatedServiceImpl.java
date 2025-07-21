@@ -25,28 +25,24 @@ public class ResourceAllocatedServiceImpl implements ResourceAllocatedService{
     private  final ProjectRepository projectRepository;
     private final ResourceRepository resourceRepository;
     private final ResourceAllocatedRepository resourceAllocatedRepository;
-    @Override
-    public String deallocateResource(Long resourceId) {
-        Resource resource = resourceRepository.findById(resourceId)
-                .orElseThrow(() -> new ResourceNotFoundException(resourceId));
 
-        if (!resource.isAllocated()) {
-            throw new IllegalStateException("Resource is not currently allocated.");
+    @Override
+    public void deallocateResource(Long allocationId) {
+        ResourceAllocated allocation = resourceAllocatedRepository.findById(allocationId)
+                .orElseThrow(() -> new RuntimeException("Resource allocation not found"));
+
+        // Set endDate to today if not already set
+        if (allocation.getEndDate() == null) {
+            allocation.setEndDate(LocalDate.now());
         }
 
-        ResourceAllocated allocation = resourceAllocatedRepository
-                .findTopByResourceIdAndEndDateIsNullOrderByStartDateDesc(resourceId)
-                .orElseThrow(() -> new RuntimeException("No active allocation found for this resource"));
-
-        // Update allocation
-        allocation.setEndDate(LocalDate.now());
-        resourceAllocatedRepository.save(allocation);
-
-        // Update resource
+        // Update resource's allocated status
+        Resource resource = allocation.getResource();
         resource.setAllocated(false);
-        resourceRepository.save(resource);
 
-        return "Resource deallocated successfully";
+        // Save both updates
+        resourceRepository.save(resource);
+        resourceAllocatedRepository.save(allocation);
     }
 
     @Override

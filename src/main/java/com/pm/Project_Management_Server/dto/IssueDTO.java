@@ -11,10 +11,8 @@ public class IssueDTO {
     private String severity;      // Enum as String: HIGH, MEDIUM, etc.
     private String description;
     private String createdBy;
-
     private LocalDate createdDate;
     private LocalDate updatedDate;
-
     private String status;        // Enum as String: OPEN, CLOSED, etc.
 
     private Long projectId;
