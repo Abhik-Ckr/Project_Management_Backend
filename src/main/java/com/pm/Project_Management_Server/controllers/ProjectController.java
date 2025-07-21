@@ -3,6 +3,7 @@ package com.pm.Project_Management_Server.controllers;
 
 import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectDTO;
+import com.pm.Project_Management_Server.dto.ProjectStatusUpdateRequestDTO;
 import com.pm.Project_Management_Server.dto.ResourceDeficitDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.services.ProjectService;
@@ -33,6 +34,13 @@ public class ProjectController {
     public ResponseEntity<List<ProjectDTO>> getAllProjects() {
         return ResponseEntity.ok(projectService.getAllProjects());
     }
+    @PutMapping("/projects/{projectId}/status")
+    public ResponseEntity<String> updateProjectStatus(@PathVariable Long projectId,
+                                                      @RequestBody ProjectStatusUpdateRequestDTO request) {
+        projectService.updateProjectStatus(projectId, request.getNewStatus());
+        return ResponseEntity.ok("Project status updated successfully.");
+    }
+
 
     @GetMapping("/{projectId}/estimated-completion-cost")
     public ResponseEntity<Double> getEstimatedCompletionCost(@PathVariable Long projectId) {
@@ -72,11 +80,6 @@ public class ProjectController {
         return ResponseEntity.noContent().build();
     }
 
-    // ---------- Client-based Queries ----------
-    @GetMapping("/lead/{leadId}")
-    public ResponseEntity<ProjectDTO> getProjectByLeadId(@PathVariable Long leadId) {
-        return ResponseEntity.ok(projectService.getProjectByLeadId(leadId));
-    }
 
     @GetMapping("/client/{clientId}")
     public ResponseEntity<List<ProjectDTO>> getProjectsByClient(@PathVariable Long clientId) {

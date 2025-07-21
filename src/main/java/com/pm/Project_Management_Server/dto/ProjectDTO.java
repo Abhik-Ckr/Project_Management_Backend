@@ -24,6 +24,5 @@ public class ProjectDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private Long clientId;
-    private Long projectLeadId;
     private Long projectRateCardId;
 }

@@ -38,9 +38,7 @@ public class Project {
 //    @JoinColumn(name = "contact_person_id",nullable = true)
 //    private ContactPerson contactPerson;
 
-    @OneToOne
-    @JoinColumn(name = "project_lead_id",nullable = false)
-    private ProjectLead projectLead;
+
 
     @OneToOne
     @JoinColumn(name = "project_rate_card_id")

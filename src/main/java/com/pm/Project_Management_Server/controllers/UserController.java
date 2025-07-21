@@ -1,6 +1,7 @@
 package com.pm.Project_Management_Server.controllers;
 
 import com.pm.Project_Management_Server.dto.UserDTO;
+import com.pm.Project_Management_Server.entity.Users;
 import com.pm.Project_Management_Server.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,13 @@ public class UserController {
     public List<UserDTO> getAllUsers() {
         return userService.getAllUsers();
     }
+
+    @GetMapping("/available-project-leads")
+    public ResponseEntity<List<Users>> getAvailableProjectLeads() {
+        List<Users> availableUsers = userService.getAvailableProjectLeadUsers();
+        return ResponseEntity.ok(availableUsers);
+    }
+
 
     @GetMapping("/type/{userType}")
     public List<UserDTO> getUsersByType(@PathVariable String userType) {

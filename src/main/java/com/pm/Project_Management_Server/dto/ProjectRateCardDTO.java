@@ -25,7 +25,6 @@ public class ProjectRateCardDTO {
     public boolean getActive() { return active;
     }
 
-    public boolean isActive() { return active;
-    }
+
 }
 

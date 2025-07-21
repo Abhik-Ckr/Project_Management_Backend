@@ -26,7 +26,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final HighlightRepository highlightRepo;
     private final ResourceRepository resourceRepo;
     private final ProjectRateCardRepository rateCardRepo;
-    private final ProjectLeadRepository leadRepo;
+    private final ProjectLeadRepository projectLeadRepo;
     private final ClientRepository clientRepo;
     private final ContactPersonRepository contactPersonRepo;
     private final ResourceRequiredRepository resourceRequiredRepo;
@@ -297,10 +297,7 @@ public class ProjectServiceImpl implements ProjectService {
                         .orElseThrow(() -> new ClientNotFoundException(dto.getClientId())));
             }
 
-            if (dto.getProjectLeadId() != null) {
-                project.setProjectLead(leadRepo.findById(dto.getProjectLeadId())
-                        .orElseThrow(() -> new ProjectLeadNotFoundException(dto.getProjectLeadId())));
-            }
+
 
             if (dto.getProjectRateCardId() != null) {
                 project.setProjectRateCard(rateCardRepo.findById(dto.getProjectRateCardId())
@@ -318,12 +315,7 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.deleteById(id);
     }
 
-    @Override
-    public ProjectDTO getProjectByLeadId(Long leadId) {
-        return projectRepository.findByProjectLeadId(leadId)
-                .map(this::mapToDTO)
-                .orElseThrow(() -> new ProjectForLeadNotFoundException(leadId));
-    }
+
 
     @Override
     public List<ProjectDTO> getProjectsByClient(Long clientId) {
@@ -453,7 +445,6 @@ public class ProjectServiceImpl implements ProjectService {
                 .startDate(project.getStartDate())
                 .endDate(project.getEndDate())
                 .clientId(project.getClient() != null ? project.getClient().getId() : null)
-                .projectLeadId(project.getProjectLead() != null ? project.getProjectLead().getId() : null)
                 .projectRateCardId(project.getProjectRateCard() != null ? project.getProjectRateCard().getId() : null)
                 .build();
     }
@@ -470,6 +461,53 @@ public class ProjectServiceImpl implements ProjectService {
                 person.getProject().getId()
         );
     }
+
+    @Override
+    @Transactional
+    public ProjectDTO updateProjectStatus(Long projectId, Project.Status newStatus) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException(projectId));
+
+        project.setStatus(newStatus);
+
+        if (newStatus == Project.Status.COMPLETED) {
+            LocalDate today = LocalDate.now();
+
+            // Step 1: Release all allocated resources
+            List<ResourceAllocated> allocations = resourceAllocatedRepo.findByProjectId(projectId);
+            for (ResourceAllocated allocation : allocations) {
+                if (allocation.getEndDate() == null) {
+                    allocation.setEndDate(today);
+                    resourceAllocatedRepo.save(allocation);
+                }
+
+                // Also set the Resource's allocated flag to false
+                Resource resource = allocation.getResource();
+                if (resource != null && resource.isAllocated()) {
+                    resource.setAllocated(false);
+                    resourceRepo.save(resource);
+                }
+            }
+
+            // Step 2: End the Project Lead assignment
+            // Step 2: End the Project Lead assignment
+            List<ProjectLead> leads = projectLeadRepo.findByProjectId(projectId);
+
+            leads.stream()
+                    .filter(lead -> lead.getEndDate() == null) // active one
+                    .findFirst()
+                    .ifPresent(lead -> {
+                        lead.setEndDate(today);
+                        projectLeadRepo.save(lead);
+                    });
+
+        }
+
+        Project updated = projectRepository.save(project);
+        return mapToDTO(updated); // Use your mapper method
+    }
+
+
     private Project mapToEntity(ProjectDTO dto) {
         return Project.builder()
                 .id(dto.getId())
@@ -484,9 +522,6 @@ public class ProjectServiceImpl implements ProjectService {
                 .endDate(dto.getEndDate())
                 .client(dto.getClientId() != null
                         ? clientRepo.findById(dto.getClientId()).orElse(null)
-                        : null)
-                .projectLead(dto.getProjectLeadId() != null
-                        ? leadRepo.findById(dto.getProjectLeadId()).orElse(null)
                         : null)
                 .projectRateCard(dto.getProjectRateCardId() != null
                         ? rateCardRepo.findById(dto.getProjectRateCardId()).orElse(null)

@@ -4,6 +4,7 @@ import com.pm.Project_Management_Server.dto.ContactPersonDTO;
 import com.pm.Project_Management_Server.dto.ProjectDTO;
 import com.pm.Project_Management_Server.dto.ResourceDeficitDTO;
 import com.pm.Project_Management_Server.entity.Project;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public interface ProjectService {
     void deleteProject(Long id);
     long countProjectsOverBudget();
 
-    ProjectDTO getProjectByLeadId(Long leadId);
+
 
     List<ProjectDTO> getProjectsByClient(Long clientId);
 
@@ -47,6 +48,11 @@ public interface ProjectService {
     Double calculateBudgetSpentById(Long id);
 
     ContactPersonDTO getContactPersonByProjectId(Long projectId);
+
+
+
+    @Transactional
+    ProjectDTO updateProjectStatus(Long projectId, Project.Status newStatus);
 
     // Optional: Keep advanced/relationship methods here as needed
 }

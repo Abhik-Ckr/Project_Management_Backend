@@ -1,126 +1,130 @@
 package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.ProjectLeadDTO;
-import com.pm.Project_Management_Server.dto.UserDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.ProjectLead;
 import com.pm.Project_Management_Server.entity.Users;
-import com.pm.Project_Management_Server.exceptions.NoLeadAssignedException;
-import com.pm.Project_Management_Server.exceptions.ProjectLeadNotFoundException;
 import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
-import com.pm.Project_Management_Server.exceptions.UserNotFoundException;
-import com.pm.Project_Management_Server.repositories.ContactPersonRepository;
 import com.pm.Project_Management_Server.repositories.ProjectLeadRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
 import com.pm.Project_Management_Server.repositories.UserRepository;
-import jakarta.transaction.Transactional;
+import com.pm.Project_Management_Server.services.ProjectLeadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ProjectLeadServiceImpl implements ProjectLeadService {
 
-    private final ProjectLeadRepository projectLeadRepository;
-    private final ProjectRepository projectRepository;
-    private final UserRepository userRepository;
-    private final ContactPersonRepository contactPersonRepository;
+    private final ProjectLeadRepository projectLeadRepo;
+    private final ProjectRepository projectRepo;
+    private final UserRepository userRepo;
 
     @Override
-    public List<ProjectLeadDTO> getAllProjectLeads() {
-        return projectLeadRepository.findAll().stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public ProjectLeadDTO getById(Long id) {
-        ProjectLead lead = projectLeadRepository.findById(id)
-                .orElseThrow(() -> new ProjectLeadNotFoundException(id));
-        return toDTO(lead);
-    }
-
-
-
-
-    @Override
-    public void removeProjectLead(Long id) {
-        if (!projectLeadRepository.existsById(id)) {
-            throw new ProjectLeadNotFoundException(id);
+    public ProjectLeadDTO assignLeadToProject(ProjectLeadDTO dto) {
+        Project project = projectRepo.findById(dto.getProjectId())
+                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
+        Optional<Users> userOpt = userRepo.findById(dto.getUserId());
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found with id: " + dto.getUserId());
         }
-        projectLeadRepository.deleteById(id);
+        Users user = userOpt.get();
+        // End previous lead assignment if exists
+        Optional<ProjectLead> existingLead = projectLeadRepo.findByProjectAndEndDateIsNull(project);
+        existingLead.ifPresent(lead -> {
+            lead.setEndDate(LocalDate.now());
+            projectLeadRepo.save(lead);
+        });
+
+        ProjectLead newLead = new ProjectLead();
+        newLead.setName(dto.getName());
+        newLead.setEmail(dto.getEmail());
+        newLead.setProject(project);
+        newLead.setUser(user);
+        newLead.setStartDate(dto.getStartDate() != null ? dto.getStartDate() : LocalDate.now());
+        newLead.setEndDate(null);
+
+        ProjectLead saved = projectLeadRepo.save(newLead);
+        return mapToDTO(saved);
     }
 
     @Override
-    public UserDTO getUserByProjectId(Long projectId) {
-        Project project = projectRepository.findById(projectId)
+    public ProjectLeadDTO endLeadAssignment(Long projectId) {
+        Project project = projectRepo.findById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException(projectId));
 
-        ProjectLead lead = project.getProjectLead();
-        if (lead == null || lead.getUser() == null) {
-            throw new NoLeadAssignedException(projectId);
-        }
+        ProjectLead lead = projectLeadRepo.findByProjectAndEndDateIsNull(project)
+                .orElseThrow(() -> new RuntimeException("No active lead for this project"));
 
-        Users user = lead.getUser();
-
-        return new UserDTO(user.getId(), user.getUserName(), user.getEmail(),user.getUserType().name());
-    }
-
-
-    @Override
-    public ProjectLeadDTO addProjectLead(ProjectLeadDTO projectLeadDTO) {
-        // 1. Fetch the user by ID
-        Users user = userRepository.findById(projectLeadDTO.getUserId())
-                .orElseThrow(() -> new UserNotFoundException(projectLeadDTO.getUserId()));
-
-        // 2. Create and populate the ProjectLead entity
-        ProjectLead projectLead = new ProjectLead();
-        projectLead.setUser(user);
-
-        // 3. Save the ProjectLead entity
-        ProjectLead savedLead = projectLeadRepository.save(projectLead);
-
-        // 4. Map saved entity to DTO
-        ProjectLeadDTO savedDTO = new ProjectLeadDTO();
-        savedDTO.setId(savedLead.getId());
-        savedDTO.setUserId(savedLead.getUser().getId());
-
-        return savedDTO;
+        lead.setEndDate(LocalDate.now());
+        projectLeadRepo.save(lead);
+        return mapToDTO(lead);
     }
 
     @Override
-    public List<UserDTO> getAllProjectLeadUsers() {
-        List<ProjectLead> leads = projectLeadRepository.findAll();
+    public ProjectLeadDTO getCurrentLeadForProject(Long projectId) {
+        Project project = projectRepo.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException(projectId));
 
-        return leads.stream()
-                .map(ProjectLead::getUser)  // get Users from each ProjectLead
-                .map(user -> {
-                    UserDTO dto = new UserDTO();
-                    dto.setId(user.getId());
-                    dto.setUserName(user.getUserName());
-                    dto.setEmail(user.getEmail());
-                    // map any other fields needed
-                    return dto;
-                })
+        ProjectLead lead = projectLeadRepo.findByProjectAndEndDateIsNull(project)
+                .orElseThrow(() -> new RuntimeException("No active lead for this project"));
+
+        return mapToDTO(lead);
+    }
+
+    @Override
+    public List<ProjectLeadDTO> getAllLeads() {
+        return projectLeadRepo.findAll()
+                .stream()
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
-
-
-    // 🔄 DTO Converter
-    private ProjectLeadDTO toDTO(ProjectLead lead) {
-        if (lead == null || lead.getUser() == null) {
-            throw new IllegalArgumentException("ProjectLead or associated User is null");
-        }
-
-        return ProjectLeadDTO.builder()
-                .id(lead.getId())
-                .userId(lead.getUser().getId())
-                .build();
+    @Override
+    public List<ProjectLeadDTO> getProjectLeadByProjectId(Long projectId) {
+        List<ProjectLead> leads = projectLeadRepo.findByProjectId(projectId);
+        return leads.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
+
+    @Override
+    public ProjectLeadDTO assignProjectLead(Long userId, Long projectId) {
+        Users user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        Project project = projectRepo.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + projectId));
+        ProjectLead lead = new ProjectLead();
+        lead.setName(user.getUserName());
+        lead.setUser(user);
+        lead.setEmail(user.getEmail());
+        lead.setStartDate(LocalDate.now());
+        lead.setProject(project);
+        lead.setEndDate(null);
+        ProjectLead savedLead = projectLeadRepo.save(lead);
+        return mapToDTO(savedLead);
+    }
+
+
+    public ProjectLeadDTO mapToDTO(ProjectLead lead) {
+        ProjectLeadDTO dto = new ProjectLeadDTO();
+        dto.setId(lead.getId());
+        dto.setUserId(lead.getUser().getId());
+        dto.setName(lead.getUser().getUserName());
+        dto.setEmail(lead.getEmail());
+        dto.setProjectId(lead.getProject().getId());
+        dto.setStartDate(lead.getStartDate());
+        dto.setEndDate(lead.getEndDate());
+        return dto;
+    }
+
+
+
 
 }

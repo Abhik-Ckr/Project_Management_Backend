@@ -24,7 +24,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     // Find all projects under a specific client
     List<Project> findByClientId(Long clientId);
-    Optional<Project> findByProjectLeadId(Long projectLeadId);
+
 
     // Find projects by status
     List<Project> findByStatus(Status status);
