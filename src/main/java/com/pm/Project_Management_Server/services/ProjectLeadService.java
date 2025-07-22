@@ -1,5 +1,6 @@
 package com.pm.Project_Management_Server.services;
 
+import com.pm.Project_Management_Server.dto.ProjectDTO;
 import com.pm.Project_Management_Server.dto.ProjectLeadDTO;
 import com.pm.Project_Management_Server.entity.ProjectLead;
 
@@ -14,4 +15,6 @@ public interface ProjectLeadService {
     List<ProjectLeadDTO> getProjectLeadByProjectId(Long projectId);
 
     ProjectLeadDTO assignProjectLead(Long userId, Long projectId);
+
+
 }

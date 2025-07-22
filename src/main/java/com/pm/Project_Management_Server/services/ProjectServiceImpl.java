@@ -464,7 +464,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public ProjectDTO updateProjectStatus(Long projectId, Project.Status newStatus) {
+    public void updateProjectStatus(Long projectId, Project.Status newStatus) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException(projectId));
 
@@ -504,8 +504,19 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         Project updated = projectRepository.save(project);
-        return mapToDTO(updated); // Use your mapper method
+        mapToDTO(updated);
     }
+
+    @Override
+    public ProjectDTO getProjectByLeadId(Long leadId) {
+        ProjectLead projectLead = projectLeadRepo.findById(leadId)
+                .orElseThrow(() -> new RuntimeException("Project Lead not found with id: " + leadId));
+
+        Project project = projectLead.getProject();
+
+        return mapToDTO(project);
+    }
+
 
 
     private Project mapToEntity(ProjectDTO dto) {
