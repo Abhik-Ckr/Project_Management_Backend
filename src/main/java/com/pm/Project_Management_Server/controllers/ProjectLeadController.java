@@ -38,6 +38,12 @@ public class ProjectLeadController {
         List<ProjectLeadDTO> history = projectLeadService.getProjectLeadByProjectId(projectId);
         return ResponseEntity.ok(history);
     }
+    @GetMapping("/users/{userId}/latest-project-lead")
+    public ResponseEntity<ProjectLeadDTO> getLatestOngoingProjectLeadForUser(@PathVariable Long userId) {
+        ProjectLeadDTO leadDTO = projectLeadService.getLatestOngoingProjectLead(userId);
+        return ResponseEntity.ok(leadDTO);
+    }
+
 
 
     @PostMapping("/assign/user/{userId}/project/{projectId}")

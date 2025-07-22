@@ -66,6 +66,17 @@ public class ProjectLeadServiceImpl implements ProjectLeadService {
         return mapToDTO(lead);
     }
 
+    @Override
+    public ProjectLeadDTO getLatestOngoingProjectLead(Long userId) {
+        List<ProjectLead> leads = projectLeadRepo
+                .findByUserIdAndEndDateIsNullOrderByStartDateDesc(userId);
+
+        if (leads.isEmpty()) {
+            throw new RuntimeException("No ongoing project lead found for user id: " + userId);
+        }
+
+        return mapToDTO(leads.get(0)); // Latest based on start date
+    }
 
 
 

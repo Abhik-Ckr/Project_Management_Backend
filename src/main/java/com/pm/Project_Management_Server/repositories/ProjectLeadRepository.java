@@ -14,6 +14,7 @@ public interface ProjectLeadRepository extends JpaRepository<ProjectLead, Long> 
 
     Optional<ProjectLead> findByUser_Id(Long userId);
     List<ProjectLead> findByEndDateIsNull(); // active project leads
+    List<ProjectLead> findByUserIdAndEndDateIsNullOrderByStartDateDesc(Long userId);
 
 
     Optional<ProjectLead> findByProjectAndEndDateIsNull(Project project);

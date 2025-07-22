@@ -17,4 +17,5 @@ public interface ProjectLeadService {
     ProjectLeadDTO assignProjectLead(Long userId, Long projectId);
 
 
+    ProjectLeadDTO getLatestOngoingProjectLead(Long userId);
 }
