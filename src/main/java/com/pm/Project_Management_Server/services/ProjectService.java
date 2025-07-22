@@ -52,7 +52,9 @@ public interface ProjectService {
 
 
     @Transactional
-    ProjectDTO updateProjectStatus(Long projectId, Project.Status newStatus);
+    void updateProjectStatus(Long projectId, Project.Status newStatus);
+
+    ProjectDTO getProjectByLeadId(Long leadId);
 
     // Optional: Keep advanced/relationship methods here as needed
 }

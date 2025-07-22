@@ -29,6 +29,12 @@ public class ProjectController {
         List<ResourceDeficitDTO> result = projectService.getResourceDeficitReport(projectId);
         return ResponseEntity.ok(result);
     }
+    @GetMapping("/project-lead/{leadId}")
+    public ResponseEntity<ProjectDTO> getProjectByProjectLeadId(@PathVariable Long leadId) {
+        ProjectDTO projectDTO = projectService.getProjectByLeadId(leadId);
+        return ResponseEntity.ok(projectDTO);
+    }
+
 
     @GetMapping
     public ResponseEntity<List<ProjectDTO>> getAllProjects() {
