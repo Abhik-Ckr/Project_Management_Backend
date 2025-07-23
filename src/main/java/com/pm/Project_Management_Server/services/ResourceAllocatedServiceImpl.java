@@ -2,20 +2,18 @@ package com.pm.Project_Management_Server.services;
 
 import com.pm.Project_Management_Server.dto.ResourceAllocatedDTO;
 import com.pm.Project_Management_Server.dto.ResourceAllocationRequestDTO;
-import com.pm.Project_Management_Server.entity.Project;
-import com.pm.Project_Management_Server.entity.Resource;
-import com.pm.Project_Management_Server.entity.ResourceAllocated;
+import com.pm.Project_Management_Server.entity.*;
 import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
 import com.pm.Project_Management_Server.exceptions.ResourceNotFoundException;
-import com.pm.Project_Management_Server.repositories.ProjectRepository;
-import com.pm.Project_Management_Server.repositories.ResourceAllocatedRepository;
-import com.pm.Project_Management_Server.repositories.ResourceRepository;
+import com.pm.Project_Management_Server.repositories.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,8 +21,48 @@ import java.util.stream.Collectors;
 @Transactional
 public class ResourceAllocatedServiceImpl implements ResourceAllocatedService{
     private  final ProjectRepository projectRepository;
+    private final ProjectRateCardRepository projectRateCardRepo;
     private final ResourceRepository resourceRepository;
+    private final GlobalRateCardRepository globalRateCardRepo;
     private final ResourceAllocatedRepository resourceAllocatedRepository;
+
+    @Override
+    public double calculateBudgetById(Long allocationId) {
+        ResourceAllocated allocation = resourceAllocatedRepository.findById(allocationId)
+                .orElseThrow(() -> new RuntimeException("Resource allocation not found"));
+
+        LocalDate start = allocation.getStartDate();
+        LocalDate end = allocation.getEndDate() != null ? allocation.getEndDate() : LocalDate.now();
+        long daysWorked = ChronoUnit.DAYS.between(start, end) + 1;
+
+        Project project = allocation.getProject();
+        ResourceLevel level = allocation.getResource().getLevel();
+
+        Optional<ProjectRateCard> projectRateCardOpt =
+                projectRateCardRepo.findFirstByProjectIdAndLevelAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndActiveTrue(
+                        project.getId(), level, start, end
+                );
+
+        double rate;
+
+        if (projectRateCardOpt.isPresent()) {
+            rate = projectRateCardOpt.get().getRate();
+        } else {
+            Optional<GlobalRateCard> globalRateCardOpt =
+                    globalRateCardRepo.findFirstByLevelAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                            level, start, end
+                    );
+
+            if (globalRateCardOpt.isEmpty()) {
+                throw new RuntimeException("No valid rate card found for level: " + level);
+            }
+
+            rate = globalRateCardOpt.get().getRate();
+        }
+        // Apply 235/365 ratio as per rule
+        double perDayRate = (rate * 235.0) / 365.0;
+        return daysWorked * perDayRate;
+    }
 
     @Override
     public void deallocateResource(Long allocationId) {

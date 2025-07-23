@@ -5,6 +5,7 @@ import com.pm.Project_Management_Server.entity.ResourceLevel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,4 +19,6 @@ public interface ProjectRateCardRepository extends JpaRepository<ProjectRateCard
     List<ProjectRateCard> findByProjectIdAndActiveTrue(Long projectId);
 
     List<ProjectRateCard> findByProjectIdAndLevelAndActiveTrue(Long projectId, ResourceLevel level);
+
+    Optional<ProjectRateCard> findFirstByProjectIdAndLevelAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndActiveTrue(Long id, ResourceLevel level, LocalDate start, LocalDate end);
 }

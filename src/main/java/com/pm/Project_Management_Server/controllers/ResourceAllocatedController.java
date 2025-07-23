@@ -16,6 +16,11 @@ import java.util.List;
 public class ResourceAllocatedController {
 
     private final ResourceAllocatedService resourceAllocatedService;
+    @GetMapping("/budget-spent/{allocationId}")
+    public ResponseEntity<Double> calculateBudgetSpent(@PathVariable Long allocationId) {
+        double budget = resourceAllocatedService.calculateBudgetById(allocationId);
+        return ResponseEntity.ok(budget);
+    }
 
     @PostMapping("/allocate")
     public ResponseEntity<String> allocateResource(@RequestBody ResourceAllocationRequestDTO request) {
