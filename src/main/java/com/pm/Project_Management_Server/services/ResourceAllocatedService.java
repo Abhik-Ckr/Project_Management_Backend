@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.List;
 
 public interface ResourceAllocatedService {
+    double calculateBudgetById(Long allocationId);
+
     void deallocateResource(Long resourceId);
 
     String allocateResource(ResourceAllocationRequestDTO request);
