@@ -23,6 +23,7 @@ public class GlobalRateCardServiceImpl implements GlobalRateCardService {
     @Override
     public List<GlobalRateCardDTO> getAll() {
         return repository.findAll().stream()
+                .sorted((a, b) -> a.getLevel().compareTo(b.getLevel()))
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
