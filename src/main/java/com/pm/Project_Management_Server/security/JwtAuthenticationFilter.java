@@ -1,3 +1,4 @@
+// ✅ JwtAuthenticationFilter.java
 package com.pm.Project_Management_Server.security;
 
 import com.pm.Project_Management_Server.services.JwtService;
@@ -7,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -42,11 +44,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         email = jwtService.extractEmail(token);
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            var user = userRepo.findByEmail(email)
-                    .orElse(null);
+            var user = userRepo.findByEmail(email).orElse(null);
             if (user != null && jwtService.isTokenValid(token)) {
+                var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getUserType().name()));
+
                 var authToken = new UsernamePasswordAuthenticationToken(
-                        user, null, List.of() // or user.getAuthorities() if implemented
+                        user, null, authorities
                 );
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
@@ -57,21 +60,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-//    @Override
-//    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-//        String path = request.getServletPath();
-//        return path.startsWith("/api/auth");
-//    }
-private static final Set<String> PUBLIC = Set.of(
-        "/api/auth/login",
-        "/api/auth/register",
-        "/api/auth/logout"
-);
+
+    private static final Set<String> PUBLIC = Set.of(
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/logout"
+    );
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return PUBLIC.contains(request.getServletPath());
     }
-
-
 }
