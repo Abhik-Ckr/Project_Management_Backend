@@ -161,18 +161,19 @@ public class ProjectServiceImpl implements ProjectService {
         LocalDate projectEndDate = project.getEndDate();
 
         for (ResourceAllocated ra : allocations) {
-            ResourceLevel level = ra.getLevel();
+            ResourceLevel level = ra.getLevel(); // Assuming this is an enum
             LocalDate start = ra.getStartDate();
             LocalDate end = ra.getEndDate() != null ? ra.getEndDate() : projectEndDate;
 
             while (!start.isAfter(end)) {
                 LocalDate currentDate = start;
 
-                // 1. Try to find applicable ProjectRateCard
+                // 1. Try to find a matching Project Rate Card
                 Optional<ProjectRateCard> projectCardOpt = projectRateCards.stream()
-                        .filter(card -> card.getLevel() == level &&
-                                !card.getStartDate().isAfter(end) &&
-                                (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate))).min(Comparator.comparing(ProjectRateCard::getStartDate));
+                        .filter(card -> card.getLevel().equals(level) &&
+                                !card.getStartDate().isAfter(currentDate) &&
+                                (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate)))
+                        .min(Comparator.comparing(ProjectRateCard::getStartDate));
 
                 double rate;
                 LocalDate rateStart;
@@ -184,21 +185,25 @@ public class ProjectServiceImpl implements ProjectService {
                     rateStart = card.getStartDate();
                     rateEnd = card.getEndDate() != null ? card.getEndDate() : end;
                 } else {
-                    // 2. Fallback to time-bounded GlobalRateCard
+                    // 2. Fallback to Global Rate Card
                     Optional<GlobalRateCard> globalCardOpt = globalRateCards.stream()
-                            .filter(card -> card.getLevel() == level &&
-                                    !card.getStartDate().isAfter(end) &&
-                                    (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate))).min(Comparator.comparing(GlobalRateCard::getStartDate));
+                            .filter(card -> card.getLevel().equals(level) &&
+                                    !card.getStartDate().isAfter(currentDate) &&
+                                    (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate)))
+                            .min(Comparator.comparing(GlobalRateCard::getStartDate));
 
-                    GlobalRateCard globalCard = globalCardOpt
-                            .orElseThrow(() -> new RuntimeException("No global rate card found for level: " + level));
+                    if (!globalCardOpt.isPresent()) {
+                        System.err.println("No global rate card found for level: " + level + " on date: " + currentDate);
+                        throw new RuntimeException("No global rate card found for level: " + level);
+                    }
 
+                    GlobalRateCard globalCard = globalCardOpt.get();
                     rate = globalCard.getRate();
                     rateStart = globalCard.getStartDate();
                     rateEnd = globalCard.getEndDate() != null ? globalCard.getEndDate() : end;
                 }
 
-                // 3. Calculate overlap of allocation and rate period
+                // 3. Calculate overlap of allocation period and rate card period
                 LocalDate overlapStart = start.isAfter(rateStart) ? start : rateStart;
                 LocalDate overlapEnd = end.isBefore(rateEnd) ? end : rateEnd;
 
@@ -206,7 +211,7 @@ public class ProjectServiceImpl implements ProjectService {
 
                 if (days > 0) {
                     totalCost += days * workingDayRatio * rate;
-                    start = overlapEnd.plusDays(1); // Move to next time segment
+                    start = overlapEnd.plusDays(1); // Move to next segment
                 } else {
                     break; // No valid overlap
                 }
@@ -215,6 +220,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         return totalCost;
     }
+
 
 
 
