@@ -20,6 +20,8 @@ public interface ProjectService {
 
     double estimateCompletionCost(Long projectId);
 
+    double estimateCompletionCostWithWorkingDays(Long projectId, int workingDays);
+
     List<ProjectDTO> getAllProjects();
 
     ProjectDTO getProjectById(Long id);
@@ -36,7 +38,6 @@ public interface ProjectService {
     List<ProjectDTO> getProjectsByClient(Long clientId);
 
     List<ProjectDTO> getProjectsByStatus(Project.Status status);
-
 
 
     List<ProjectDTO> getProjectsOverBudget();

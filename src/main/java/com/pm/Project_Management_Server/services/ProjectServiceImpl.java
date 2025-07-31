@@ -221,11 +221,76 @@ public class ProjectServiceImpl implements ProjectService {
         return totalCost;
     }
 
+    @Override
+    public double estimateCompletionCostWithWorkingDays(Long projectId, int workingDays) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException(projectId));
 
+        List<ResourceAllocated> allocations = resourceAllocatedRepo.findByProjectId(projectId);
+        List<ProjectRateCard> projectRateCards = projectRateCardRepository.findByProjectId(projectId);
+        List<GlobalRateCard> globalRateCards = globalRateCardRepository.findAll();
 
+        double workingDayRatio = ((double) workingDays) / 365.0;
+        double totalCost = 0.0;
+        LocalDate projectEndDate = project.getEndDate();
 
+        for (ResourceAllocated ra : allocations) {
+            ResourceLevel level = ra.getLevel();
+            LocalDate start = ra.getStartDate();
+            LocalDate end = ra.getEndDate() != null ? ra.getEndDate() : projectEndDate;
 
+            while (!start.isAfter(end)) {
+                LocalDate currentDate = start;
 
+                Optional<ProjectRateCard> projectCardOpt = projectRateCards.stream()
+                        .filter(card -> card.getLevel().equals(level) &&
+                                !card.getStartDate().isAfter(currentDate) &&
+                                (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate)))
+                        .min(Comparator.comparing(ProjectRateCard::getStartDate));
+
+                double rate;
+                LocalDate rateStart;
+                LocalDate rateEnd;
+
+                if (projectCardOpt.isPresent()) {
+                    ProjectRateCard card = projectCardOpt.get();
+                    rate = card.getRate();
+                    rateStart = card.getStartDate();
+                    rateEnd = card.getEndDate() != null ? card.getEndDate() : end;
+                } else {
+                    Optional<GlobalRateCard> globalCardOpt = globalRateCards.stream()
+                            .filter(card -> card.getLevel().equals(level) &&
+                                    !card.getStartDate().isAfter(currentDate) &&
+                                    (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate)))
+                            .min(Comparator.comparing(GlobalRateCard::getStartDate));
+
+                    if (!globalCardOpt.isPresent()) {
+                        System.err.println("No global rate card found for level: " + level + " on date: " + currentDate);
+                        throw new RuntimeException("No global rate card found for level: " + level);
+                    }
+
+                    GlobalRateCard globalCard = globalCardOpt.get();
+                    rate = globalCard.getRate();
+                    rateStart = globalCard.getStartDate();
+                    rateEnd = globalCard.getEndDate() != null ? globalCard.getEndDate() : end;
+                }
+
+                LocalDate overlapStart = start.isAfter(rateStart) ? start : rateStart;
+                LocalDate overlapEnd = end.isBefore(rateEnd) ? end : rateEnd;
+
+                long days = ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
+
+                if (days > 0) {
+                    totalCost += days * workingDayRatio * rate;
+                    start = overlapEnd.plusDays(1);
+                } else {
+                    break;
+                }
+            }
+        }
+
+        return totalCost;
+    }
 
     @Override
     public List<ProjectDTO> getAllProjects() {

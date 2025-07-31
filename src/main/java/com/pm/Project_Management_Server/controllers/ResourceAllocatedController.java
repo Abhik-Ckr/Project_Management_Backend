@@ -51,4 +51,11 @@ public class ResourceAllocatedController {
     public ResponseEntity<List<ResourceAllocatedDTO>> getResourcesByProject(@PathVariable Long projectId) {
         return ResponseEntity.ok(resourceAllocatedService.getResourcesByProject(projectId));
     }
+
+    @GetMapping("/estimated-budget-spent/{allocationId}")
+    public ResponseEntity<Double> getEstimatedCost(@PathVariable Long allocationId) {
+        double estimatedCost = resourceAllocatedService.calculateEstimatedCostPerResource(allocationId);
+        return ResponseEntity.ok(estimatedCost);
+    }
+
 }

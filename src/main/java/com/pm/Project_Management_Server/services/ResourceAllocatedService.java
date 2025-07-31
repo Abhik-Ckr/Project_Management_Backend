@@ -20,4 +20,6 @@ public interface ResourceAllocatedService {
     List<ResourceAllocatedDTO> getResourcesByProject(Long projectId);
 
     ResourceAllocatedDTO allocateResource(ResourceAllocatedDTO dto);
+
+    double calculateEstimatedCostPerResource(Long allocationId);
 }

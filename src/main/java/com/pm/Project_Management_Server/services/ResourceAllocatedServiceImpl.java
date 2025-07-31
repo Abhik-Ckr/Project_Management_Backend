@@ -6,12 +6,14 @@ import com.pm.Project_Management_Server.entity.*;
 import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
 import com.pm.Project_Management_Server.exceptions.ResourceNotFoundException;
 import com.pm.Project_Management_Server.repositories.*;
+import java.time.DayOfWeek;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,7 +35,13 @@ public class ResourceAllocatedServiceImpl implements ResourceAllocatedService{
 
         LocalDate start = allocation.getStartDate();
         LocalDate end = allocation.getEndDate() != null ? allocation.getEndDate() : LocalDate.now();
-        long daysWorked = ChronoUnit.DAYS.between(start, end) + 1;
+
+        // Calculate actual working days (weekdays only)
+        long workingDays = start.datesUntil(end.plusDays(1))
+                .filter(date -> {
+                    DayOfWeek day = date.getDayOfWeek();
+                    return day != DayOfWeek.SATURDAY && day != DayOfWeek.SUNDAY;
+                }).count();
 
         Project project = allocation.getProject();
         ResourceLevel level = allocation.getResource().getLevel();
@@ -59,10 +67,11 @@ public class ResourceAllocatedServiceImpl implements ResourceAllocatedService{
 
             rate = globalRateCardOpt.get().getRate();
         }
-        // Apply 235/365 ratio as per rule
-        double perDayRate = (rate * 235.0) / 365.0;
-        return daysWorked * perDayRate;
+
+        // Do NOT average using 235/365 — just multiply actual working days with rate
+        return workingDays * rate;
     }
+
 
     @Override
     public void deallocateResource(Long allocationId) {
@@ -192,6 +201,74 @@ public class ResourceAllocatedServiceImpl implements ResourceAllocatedService{
         return mapToDTO(saved);
     }
 
+    @Override
+    public double calculateEstimatedCostPerResource(Long allocationId) {
+        ResourceAllocated allocation = resourceAllocatedRepository.findById(allocationId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid allocation ID"));
 
+        Project project = allocation.getProject();
+        List<ProjectRateCard> projectRateCards = projectRateCardRepo.findByProjectId(project.getId());
+        List<GlobalRateCard> globalRateCards = globalRateCardRepo.findAll();
+
+        ResourceLevel level = allocation.getLevel();
+        LocalDate start = allocation.getStartDate();
+        LocalDate end = allocation.getEndDate() != null ? allocation.getEndDate() : project.getEndDate();
+
+        double totalCost = 0.0;
+        double workingDayRatio = 235.0 / 365.0;
+
+        while (!start.isAfter(end)) {
+            LocalDate currentDate = start;
+
+            // Step 1: Try to get matching project rate card
+            Optional<ProjectRateCard> projectCardOpt = projectRateCards.stream()
+                    .filter(card -> card.getLevel().equals(level) &&
+                            !card.getStartDate().isAfter(currentDate) &&
+                            (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate)))
+                    .min(Comparator.comparing(ProjectRateCard::getStartDate));
+
+            double rate;
+            LocalDate rateStart;
+            LocalDate rateEnd;
+
+            if (projectCardOpt.isPresent()) {
+                ProjectRateCard card = projectCardOpt.get();
+                rate = card.getRate();
+                rateStart = card.getStartDate();
+                rateEnd = card.getEndDate() != null ? card.getEndDate() : end;
+            } else {
+                // Step 2: Fallback to global rate card
+                Optional<GlobalRateCard> globalCardOpt = globalRateCards.stream()
+                        .filter(card -> card.getLevel().equals(level) &&
+                                !card.getStartDate().isAfter(currentDate) &&
+                                (card.getEndDate() == null || !card.getEndDate().isBefore(currentDate)))
+                        .min(Comparator.comparing(GlobalRateCard::getStartDate));
+
+                if (!globalCardOpt.isPresent()) {
+                    throw new RuntimeException("No rate card found for level: " + level + " on " + currentDate);
+                }
+
+                GlobalRateCard globalCard = globalCardOpt.get();
+                rate = globalCard.getRate();
+                rateStart = globalCard.getStartDate();
+                rateEnd = globalCard.getEndDate() != null ? globalCard.getEndDate() : end;
+            }
+
+            // Step 3: Compute overlap of allocation period and rate card period
+            LocalDate overlapStart = start.isAfter(rateStart) ? start : rateStart;
+            LocalDate overlapEnd = end.isBefore(rateEnd) ? end : rateEnd;
+
+            long days = ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
+
+            if (days > 0) {
+                totalCost += days * workingDayRatio * rate;
+                start = overlapEnd.plusDays(1); // advance start to next rate period
+            } else {
+                break; // no overlap
+            }
+        }
+
+        return totalCost;
+    }
 
 }

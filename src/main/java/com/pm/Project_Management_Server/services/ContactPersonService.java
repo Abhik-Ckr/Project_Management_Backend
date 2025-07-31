@@ -40,6 +40,8 @@ public class ContactPersonService {
         return contactPersonRepository.findById(id).map(existing -> {
             existing.setName(dto.getName());
             existing.setEmail(dto.getEmail());
+            existing.setPhone(dto.getPhone());
+            System.out.println("Phone from DTO: " + dto.getPhone());
 
             if (dto.getProjectId() != null) {
                 projectRepository.findById(dto.getProjectId()).ifPresent(existing::setProject);
@@ -61,6 +63,9 @@ public class ContactPersonService {
         ContactPerson cp = new ContactPerson();
         cp.setName(dto.getName());
         cp.setEmail(dto.getEmail());
+        cp.setPhone(dto.getPhone());
+
+        System.out.println("Phone from DTO: " + dto.getPhone());
 
         if (dto.getProjectId() != null) {
             projectRepository.findById(dto.getProjectId()).ifPresent(cp::setProject);

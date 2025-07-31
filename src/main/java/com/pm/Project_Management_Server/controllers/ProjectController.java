@@ -54,6 +54,15 @@ public class ProjectController {
         return ResponseEntity.ok(cost);
     }
 
+    @GetMapping("/{projectId}/estimate-completion-cost")
+    public ResponseEntity<Double> estimateCompletionCost(
+            @PathVariable Long projectId,
+            @RequestParam(name = "workingDays") int workingDays
+    ) {
+        double cost = projectService.estimateCompletionCostWithWorkingDays(projectId, workingDays);
+        return ResponseEntity.ok(cost);
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectDTO> getProjectById(@PathVariable Long id) {
