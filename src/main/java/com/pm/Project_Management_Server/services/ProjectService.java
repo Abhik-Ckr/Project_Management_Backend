@@ -50,7 +50,7 @@ public interface ProjectService {
 
     ContactPersonDTO getContactPersonByProjectId(Long projectId);
 
-
+    void completeProject(Long projectId);
 
     @Transactional
     void updateProjectStatus(Long projectId, Project.Status newStatus);

@@ -131,4 +131,11 @@ public class ProjectController {
         return ResponseEntity.ok(totalRequired);
     }
 
+    @PutMapping("/projects/complete/{projectId}")
+    public ResponseEntity<String> completeProject(@PathVariable Long projectId) {
+        projectService.completeProject(projectId);
+        return ResponseEntity.ok("Project marked as completed. Lead and resources deallocated.");
+    }
+
+
 }

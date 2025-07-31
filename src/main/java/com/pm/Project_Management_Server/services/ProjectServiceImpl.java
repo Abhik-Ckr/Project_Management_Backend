@@ -31,6 +31,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ContactPersonRepository contactPersonRepo;
     private final ResourceRequiredRepository resourceRequiredRepo;
     private final ResourceAllocatedRepository resourceAllocatedRepo;
+    private final ResourceAllocatedService resourceAllocationService;
 
     // ---------- CRUD Operations using DTO ----------
 
@@ -497,6 +498,37 @@ public class ProjectServiceImpl implements ProjectService {
 
         return calculateBudgetSpent(project);
     }
+
+    @Override
+    @Transactional
+    public void completeProject(Long projectId) {
+        // Fetch the project
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException(projectId));
+
+        // Set project status to COMPLETED
+        project.setStatus(Project.Status.COMPLETED);
+        projectRepository.save(project);
+
+        // End project lead assignment (if active lead exists)
+        projectLeadRepo.findByProjectAndEndDateIsNull(project).ifPresent(lead -> {
+            lead.setEndDate(LocalDate.now());
+            projectLeadRepo.save(lead);
+        });
+
+        // Deallocate all allocated resources
+        List<ResourceAllocated> allocations = resourceAllocatedRepo.findByProjectId(projectId);
+        for (ResourceAllocated alloc : allocations) {
+            try {
+                resourceAllocationService.deallocateResource(alloc.getId());
+            } catch (Exception e) {
+                // Log error and continue with others
+                System.err.println("Failed to deallocate resource with ID: " + alloc.getId());
+            }
+        }
+    }
+
+
 
 
 
