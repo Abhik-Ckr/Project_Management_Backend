@@ -3,13 +3,11 @@ package com.pm.Project_Management_Server.services;
 import com.pm.Project_Management_Server.dto.OpenPositionDTO;
 import com.pm.Project_Management_Server.entity.OpenPosition;
 import com.pm.Project_Management_Server.entity.Project;
-import com.pm.Project_Management_Server.entity.ResourceLevel;
 import com.pm.Project_Management_Server.exceptions.InvalidResourceLevelException;
 import com.pm.Project_Management_Server.exceptions.OpenPositionNotFoundException;
 import com.pm.Project_Management_Server.exceptions.ProjectNotFoundException;
 import com.pm.Project_Management_Server.repositories.OpenPositionRepository;
 import com.pm.Project_Management_Server.repositories.ProjectRepository;
-import com.pm.Project_Management_Server.services.OpenPositionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +23,7 @@ public class OpenPositionServiceImpl implements OpenPositionService {
     private final OpenPositionRepository openPositionRepository;
     private final ProjectRepository projectRepository;
 
+    // Get all open positions
     @Override
     public List<OpenPositionDTO> getAllOpenPositions() {
         return openPositionRepository.findAll().stream()
@@ -32,6 +31,7 @@ public class OpenPositionServiceImpl implements OpenPositionService {
                 .collect(Collectors.toList());
     }
 
+    // Get open position by ID
     @Override
     public OpenPositionDTO getById(Long id) {
         OpenPosition op = openPositionRepository.findById(id)
@@ -39,6 +39,7 @@ public class OpenPositionServiceImpl implements OpenPositionService {
         return toDTO(op);
     }
 
+    // Get all open positions for a given project ID
     @Override
     public List<OpenPositionDTO> getByProjectId(Long projectId) {
         return openPositionRepository.findByProjectId(projectId).stream()
@@ -46,6 +47,7 @@ public class OpenPositionServiceImpl implements OpenPositionService {
                 .collect(Collectors.toList());
     }
 
+    // Create a new open position
     @Override
     public OpenPositionDTO createOpenPosition(OpenPositionDTO dto) {
         Project project = projectRepository.findById(dto.getProjectId())
@@ -65,6 +67,29 @@ public class OpenPositionServiceImpl implements OpenPositionService {
         return toDTO(saved);
     }
 
+    // ✅ Update an existing open position by ID
+    @Override
+    public OpenPositionDTO updateOpenPosition(Long id, OpenPositionDTO dto) {
+        OpenPosition existing = openPositionRepository.findById(id)
+                .orElseThrow(() -> new OpenPositionNotFoundException(id));
+
+        if (dto.getLevel() == null) {
+            throw new InvalidResourceLevelException();
+        }
+
+        Project project = projectRepository.findById(dto.getProjectId())
+                .orElseThrow(() -> new ProjectNotFoundException(dto.getProjectId()));
+
+        // Update fields
+        existing.setLevel(dto.getLevel());
+        existing.setNumberRequired(dto.getNumberRequired());
+        existing.setProject(project);
+
+        OpenPosition updated = openPositionRepository.save(existing);
+        return toDTO(updated);
+    }
+
+    // Delete an open position by ID
     @Override
     public void deleteOpenPosition(Long id) {
         if (!openPositionRepository.existsById(id)) {
@@ -73,6 +98,7 @@ public class OpenPositionServiceImpl implements OpenPositionService {
         openPositionRepository.deleteById(id);
     }
 
+    // Get total count of open positions
     @Override
     public int getTotalOpenPositions() {
         return openPositionRepository.findAll().stream()
@@ -80,6 +106,7 @@ public class OpenPositionServiceImpl implements OpenPositionService {
                 .sum();
     }
 
+    // Convert entity to DTO
     private OpenPositionDTO toDTO(OpenPosition entity) {
         OpenPositionDTO dto = new OpenPositionDTO();
         dto.setId(entity.getId());

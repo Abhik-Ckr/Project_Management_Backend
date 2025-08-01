@@ -10,4 +10,5 @@ public interface OpenPositionService {
     OpenPositionDTO createOpenPosition(OpenPositionDTO dto);
     void deleteOpenPosition(Long id);
     int getTotalOpenPositions();
+    OpenPositionDTO updateOpenPosition(Long id, OpenPositionDTO dto);
 }
